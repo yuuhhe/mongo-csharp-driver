@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.1</TargetFrameworks>
@@ -17,12 +17,13 @@
     <Authors>vincentkam;dmitry_lukyanov;rstam;craiggwilson</Authors>
     <PackageIcon>packageIcon.png</PackageIcon>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <PackageDescription>Official .NET driver for MongoDB.</PackageDescription>
+    <PackageDescription>Added Official MongoDB .NET Driver support Unix Domain Socket</PackageDescription>
     <PackageProjectUrl>http://www.mongodb.org/display/DOCS/CSharp+Language+Center</PackageProjectUrl>
     <PackageLicenseFile>License.txt</PackageLicenseFile>
     <PackageTags>mongodb;mongo;nosql</PackageTags>
     <PackageLanguage>en-US</PackageLanguage>
     <IncludeSymbols>true</IncludeSymbols>
+    <RepositoryUrl>https://github.com/yuuhhe/mongo-csharp-driver</RepositoryUrl>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Version)'==''">
