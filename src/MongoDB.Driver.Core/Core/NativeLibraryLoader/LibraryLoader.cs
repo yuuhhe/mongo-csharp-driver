@@ -97,7 +97,7 @@ namespace MongoDB.Driver.Core.NativeLibraryLoader
 
         private void ThrowIfNot64BitProcess()
         {
-#if NET452 || NETSTANDARD2_0
+#if NET452 || NETSTANDARD2_0 || NETSTANDARD2_1
             var is64Bit = Environment.Is64BitProcess;
 #else
             var is64Bit = IntPtr.Size == 8;
