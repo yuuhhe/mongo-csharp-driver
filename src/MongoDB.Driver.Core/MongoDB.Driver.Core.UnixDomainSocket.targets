@@ -16,12 +16,4 @@
             <Link>snappy64.dll</Link>
         </Content>
     </ItemGroup>
-
-    <!--zstd-->
-    <ItemGroup Condition="$([MSBuild]::IsOsPlatform('Windows'))">
-        <Content Include="$(MSBuildThisFileDirectory)../$(CompressionRuntimesPath)/libzstd.dll">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-            <Link>libzstd.dll</Link>
-        </Content>
-    </ItemGroup>
 </Project>

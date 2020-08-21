@@ -12,7 +12,16 @@ You can connect to /tmp/mongod.sock in this :
 var client = new MongoClient("mongodb://%2Ftmp%2Fmongod.sock");
 ```
 
-
+And support std compression
+=================
+```
+net:
+   compression:
+      compressors: std
+```
+```C#
+var client = new MongoClient("mongodb://%2Ftmp%2Fmongod.sock?compressors=zstandard");
+```
 
 MongoDB C# Driver
 =================
