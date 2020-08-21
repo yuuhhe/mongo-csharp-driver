@@ -21,6 +21,7 @@ using System.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver.Core.Authentication;
+using MongoDB.Driver.Core.Compression;
 using MongoDB.Driver.Core.Configuration;
 using MongoDB.Driver.Core.Misc;
 using MongoDB.Driver.Core.Servers;
@@ -37,7 +38,22 @@ namespace MongoDB.Driver.Core.Connections
 
         internal static BsonDocument AddCompressorsToCommand(BsonDocument command, IEnumerable<CompressorConfiguration> compressors)
         {
-            var compressorsArray = new BsonArray(compressors.Select(x => x.Type.ToString().ToLowerInvariant()));
+            //var compressorsArray = new BsonArray(compressors.Select(x => x.Type.ToString().ToLowerInvariant()));
+            var compressions = compressors.Select(x =>
+            {
+                switch (x.Type)
+                {
+                    case CompressorType.Snappy:
+                        return "snappy";
+                    case CompressorType.Zlib:
+                        return "zlib";
+                    case CompressorType.ZStandard:
+                        return "zstd";
+                    default:
+                        return string.Empty;
+                }
+            });
+            var compressorsArray = new BsonArray(compressions);
 
             return command.Add("compression", compressorsArray);
         }

@@ -57,10 +57,22 @@ namespace MongoDB.Driver.Core.Connections
                         .AsBsonArray
                         .Select(x =>
                         {
-                            return Enum.TryParse<CompressorType>(x.AsString, true, out var compressorType)
-                                ? compressorType
-                                // we can have such a case only due to the server bug
-                                : throw new NotSupportedException($"The unsupported compressor name: '{x}'.");
+                            switch (x.AsString)
+                            {
+                                case "snappy":
+                                    return CompressorType.Snappy;
+                                case "zlib":
+                                    return CompressorType.Zlib;
+                                case "zstd":
+                                    return CompressorType.ZStandard;
+                                default:
+                                    // we can have such a case only due to the server bug
+                                    throw new NotSupportedException($"The unsupported compressor name: '{x}'.");
+                            }
+                            //return Enum.TryParse<CompressorType>(x.AsString, true, out var compressorType)
+                            //    ? compressorType
+                            //    // we can have such a case only due to the server bug
+                            //    : throw new NotSupportedException($"The unsupported compressor name: '{x}'.");
                         })
                         .ToList();
                 }
