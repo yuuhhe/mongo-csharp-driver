@@ -17,7 +17,7 @@
     <Authors>vincentkam;dmitry_lukyanov;rstam;craiggwilson;yuuhhe</Authors>
     <PackageIcon>packageIcon.png</PackageIcon>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <PackageDescription>Added Zstandard support</PackageDescription>
+    <PackageDescription>Support snappy std compression on Linux</PackageDescription>
     <PackageProjectUrl>http://www.mongodb.org/display/DOCS/CSharp+Language+Center</PackageProjectUrl>
     <PackageLicenseFile>License.txt</PackageLicenseFile>
     <PackageTags>mongodb;mongo;nosql;uds;unixdomainsocket;zstd;zstandard</PackageTags>
