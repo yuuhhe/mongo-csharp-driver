@@ -77,7 +77,7 @@ namespace MongoDB.Driver.Core.NativeLibraryLoader
 
         private SupportedPlatform GetCurrentPlatform()
         {
-#if NETSTANDARD1_5
+#if NETSTANDARD
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
                 return SupportedPlatform.MacOS;
