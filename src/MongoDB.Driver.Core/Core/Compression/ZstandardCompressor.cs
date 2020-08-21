@@ -53,6 +53,7 @@ namespace MongoDB.Driver.Core.Compression
             using (var zstandardStream = new ZStdDecompressStream(input))
             {
                 zstandardStream.CopyTo(output);
+                zstandardStream.Flush();
             }
         }
     }

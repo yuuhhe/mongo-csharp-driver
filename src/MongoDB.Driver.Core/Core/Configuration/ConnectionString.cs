@@ -1379,13 +1379,21 @@ namespace MongoDB.Driver.Core.Configuration
             {
                 foreach (var compressor in compressorNames)
                 {
-                    // NOTE: the 'noop' is also expected by the server
-                    if (!Enum.TryParse(compressor, true, out CompressorType compressorType) || !CompressorSource.IsCompressorSupported(compressorType))
+                    switch (compressor.ToLowerInvariant())
                     {
-                        // Keys that aren't supported by a driver MUST be ignored.
-                        continue;
+                        case "snappy":
+                            _compressors.Add(new CompressorConfiguration(CompressorType.Snappy));
+                            break;
+                        case "zlib":
+                            _compressors.Add(new CompressorConfiguration(CompressorType.Zlib));
+                            break;
+                        case "zstd":
+                        case "zstandard":
+                            _compressors.Add(new CompressorConfiguration(CompressorType.ZStandard));
+                            break;
+                        default:
+                            break;
                     }
-                    _compressors.Add(new CompressorConfiguration(compressorType));
                 }
             }
 
