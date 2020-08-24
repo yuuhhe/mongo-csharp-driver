@@ -12,12 +12,12 @@ You can connect to /tmp/mongod.sock in this :
 var client = new MongoClient("mongodb://%2Ftmp%2Fmongod.sock");
 ```
 
-And support snappy std compression on Linux
+And support snappy zstd compressions on Linux
 =================
 ```
 net:
    compression:
-      compressors: std,snappy
+      compressors: zstd,snappy
 ```
 ```C#
 var client = new MongoClient("mongodb://%2Ftmp%2Fmongod.sock?compressors=zstandard,snappy");
