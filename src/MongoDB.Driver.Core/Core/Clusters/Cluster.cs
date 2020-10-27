@@ -90,7 +90,7 @@ namespace MongoDB.Driver.Core.Clusters
             _state = new InterlockedInt32(State.Initial);
 
             _clusterId = new ClusterId();
-            _description = ClusterDescription.CreateInitial(_clusterId, _settings.ConnectionMode);
+            _description = CreateInitialDescription();
             _descriptionChangedTaskCompletionSource = new TaskCompletionSource<bool>();
             _latencyLimitingServerSelector = new LatencyLimitingServerSelector(settings.LocalThreshold);
 
@@ -102,6 +102,16 @@ namespace MongoDB.Driver.Core.Clusters
             eventSubscriber.TryGetEventHandler(out _selectingServerFailedEventHandler);
 
             _serverSessionPool = new CoreServerSessionPool(this);
+
+            ClusterDescription CreateInitialDescription()
+            {
+#pragma warning disable CS0618 // Type or member is obsolete
+                var connectionModeSwitch = _settings.ConnectionModeSwitch;
+                var clusterConnectionMode = connectionModeSwitch == ConnectionModeSwitch.UseConnectionMode ? _settings.ConnectionMode : default;
+                var directConnection = connectionModeSwitch == ConnectionModeSwitch.UseDirectConnection ? _settings.DirectConnection : default;
+                return ClusterDescription.CreateInitial(_clusterId, clusterConnectionMode, _settings.ConnectionModeSwitch, directConnection);
+#pragma warning restore CS0618 // Type or member is obsolete
+            }
         }
 
         // events
@@ -155,11 +165,20 @@ namespace MongoDB.Driver.Core.Clusters
         {
             if (_state.TryChange(State.Disposed))
             {
+#pragma warning disable CS0618 // Type or member is obsolete
+                var connectionModeSwitch = _description.ConnectionModeSwitch;
+                var connectionMode = connectionModeSwitch == ConnectionModeSwitch.UseConnectionMode ? _description.ConnectionMode : default;
+                var directConnection = connectionModeSwitch == ConnectionModeSwitch.UseDirectConnection ? _description.DirectConnection : default;
+
                 var newClusterDescription = new ClusterDescription(
                     _clusterId,
-                    _description.ConnectionMode,
+                    connectionMode,
+                    connectionModeSwitch,
+                    directConnection,
+                    dnsMonitorException: null,
                     ClusterType.Unknown,
                     Enumerable.Empty<ServerDescription>());
+#pragma warning restore CS0618 // Type or member is obsolete
 
                 UpdateClusterDescription(newClusterDescription);
 
@@ -329,7 +348,7 @@ namespace MongoDB.Driver.Core.Clusters
         {
             var ms = (int)Math.Round(timeout.TotalMilliseconds);
             return string.Format(
-                "A timeout occured after {0}ms selecting a server using {1}. Client view of cluster state is {2}.",
+                "A timeout occurred after {0}ms selecting a server using {1}. Client view of cluster state is {2}.",
                 ms.ToString(),
                 selector.ToString(),
                 clusterDescription.ToString());

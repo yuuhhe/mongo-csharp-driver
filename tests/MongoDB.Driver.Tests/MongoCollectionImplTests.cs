@@ -259,6 +259,62 @@ namespace MongoDB.Driver
         }
 
         [Theory]
+        [InlineData("{ $merge : \"outputcollection\" }", null, "outputcollection", false)]
+        [InlineData("{ $merge : \"outputcollection\" }", null, "outputcollection", true)]
+        [InlineData("{ $merge : { into : \"outputcollection\" } }", null, "outputcollection", false)]
+        [InlineData("{ $merge : { into : \"outputcollection\" } }", null, "outputcollection", true)]
+        [InlineData("{ $merge : { into : { coll : \"outputcollection\" } } }", null, "outputcollection", false)]
+        [InlineData("{ $merge : { into : { coll : \"outputcollection\" } } }", null, "outputcollection", true)]
+        [InlineData("{ $merge : { into : { db: \"outputdatabase\", coll : \"outputcollection\" } } }", "outputdatabase", "outputcollection", false)]
+        [InlineData("{ $merge : { into : { db: \"outputdatabase\", coll : \"outputcollection\" } } }", "outputdatabase", "outputcollection", true)]
+        public void Aggregate_should_recognize_merge_collection_argument(
+            string stageDefinitionString,
+            string expectedDatabaseName,
+            string expectedCollectionName,
+            bool async)
+        {
+            var subject = CreateSubject<BsonDocument>();
+            var stageDefinition = BsonDocument.Parse(stageDefinitionString);
+            var expectedCollectionNamespace = new CollectionNamespace(
+                expectedDatabaseName ?? subject.CollectionNamespace.DatabaseNamespace.DatabaseName,
+                expectedCollectionName);
+
+            var pipeline = new EmptyPipelineDefinition<BsonDocument>()
+                .AppendStage<BsonDocument, BsonDocument, BsonDocument>(stageDefinition);
+            var expectedPipeline = new List<BsonDocument>(RenderPipeline(subject, pipeline).Documents);
+
+            IAsyncCursor<BsonDocument> result;
+            if (async)
+            {
+                result = subject.AggregateAsync(pipeline).GetAwaiter().GetResult();
+            }
+            else
+            {
+                result = subject.Aggregate(pipeline);
+            }
+            var aggregateCall = _operationExecutor.GetWriteCall<BsonDocument>();
+
+            var aggregateOperation = aggregateCall.Operation.Should().BeOfType<AggregateToCollectionOperation>().Subject;
+            aggregateOperation.CollectionNamespace.Should().Be(subject.CollectionNamespace);
+            aggregateOperation.Pipeline.Should().Equal(expectedPipeline);
+
+            var mockCursor = new Mock<IAsyncCursor<BsonDocument>>();
+            _operationExecutor.EnqueueResult(mockCursor.Object);
+            if (async)
+            {
+                result.MoveNextAsync().GetAwaiter().GetResult();
+            }
+            else
+            {
+                result.MoveNext();
+            }
+            var findCall = _operationExecutor.GetReadCall<IAsyncCursor<BsonDocument>>();
+
+            var findOperation = findCall.Operation.Should().BeOfType<FindOperation<BsonDocument>>().Subject;
+            findOperation.CollectionNamespace.Should().Be(expectedCollectionNamespace);
+        }
+
+        [Theory]
         [ParameterAttributeData]
         public void AggregateToCollection_should_execute_an_AggregateToCollectionOperation(
             [Values(false, true)] bool usingSession,
@@ -1838,6 +1894,7 @@ namespace MongoDB.Driver
             [Values(null, 1, 2)] int? commitQuorumW,
             [Values(null, -1, 0, 42, 9000)] int? milliseconds,
             [Values(false, true)] bool usingCreateOneIndexOptions,
+            [Values(null, false, true)] bool? hidden,
             [Values(false, true)] bool async)
         {
             var writeConcern = new WriteConcern(1);
@@ -1866,6 +1923,7 @@ namespace MongoDB.Driver
                 Collation = new Collation("en_US"),
                 DefaultLanguage = "en",
                 ExpireAfter = TimeSpan.FromSeconds(20),
+                Hidden = hidden,
                 LanguageOverride = "es",
                 Max = 30,
                 Min = 40,
@@ -1930,6 +1988,7 @@ namespace MongoDB.Driver
             request.Collation.Should().BeSameAs(options.Collation);
             request.DefaultLanguage.Should().Be(options.DefaultLanguage);
             request.ExpireAfter.Should().Be(options.ExpireAfter);
+            request.Hidden.Should().Be(options.Hidden);
             var expectedKeysResult =
                 usingWildcardIndex
                     ? new BsonDocument("$**", 1)
@@ -1967,6 +2026,7 @@ namespace MongoDB.Driver
             [Values(null, 1, 2)] int? commitQuorumW,
             [Values(null, -1, 0, 42, 9000)] int? milliseconds,
             [Values(false, true)] bool usingCreateManyIndexesOptions,
+            [Values(null, false, true)] bool? hidden,
             [Values(false, true)] bool async)
         {
             var writeConcern = new WriteConcern(1);
@@ -1998,6 +2058,7 @@ namespace MongoDB.Driver
                 Collation = new Collation("en_US"),
                 DefaultLanguage = "en",
                 ExpireAfter = TimeSpan.FromSeconds(20),
+                Hidden = hidden,
                 LanguageOverride = "es",
                 Max = 30,
                 Min = 40,
@@ -2063,6 +2124,7 @@ namespace MongoDB.Driver
             request1.Collation.Should().BeSameAs(options.Collation);
             request1.DefaultLanguage.Should().Be(options.DefaultLanguage);
             request1.ExpireAfter.Should().Be(options.ExpireAfter);
+            request1.Hidden.Should().Be(options.Hidden);
             var expectedKeysResult =
                 usingWildcardIndex
                     ? new BsonDocument("$**", 1)
@@ -2102,6 +2164,7 @@ namespace MongoDB.Driver
             request2.Collation.Should().BeNull();
             request2.DefaultLanguage.Should().BeNull();
             request2.ExpireAfter.Should().NotHaveValue();
+            request2.Hidden.Should().NotHaveValue();
             request2.Keys.Should().Be(keysDocument2);
             request2.LanguageOverride.Should().BeNull();
             request2.Max.Should().NotHaveValue();

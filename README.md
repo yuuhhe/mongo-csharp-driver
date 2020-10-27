@@ -138,6 +138,7 @@ Please see our [guidelines](CONTRIBUTING.md) for contributing to the driver.
 * Bouke Haarsma             https://github.com/Bouke
 * James Hadwen              james.hadwen@sociustec.com
 * Nuri Halperin             https://github.com/nurih
+* Nikola Irinchev           https://github.com/nirinchev
 * Jacob Jewell              jacobjewell@eflexsystems.com
 * Danny Kendrick            https://github.com/dkendrick
 * Ruslan Khasanbaev         https://github.com/flaksirus
@@ -163,6 +164,7 @@ Please see our [guidelines](CONTRIBUTING.md) for contributing to the driver.
 * Rachelle Palmer           https://github.com/techbelle
 * Rich Quackenbush          rich.quackenbush@captiveaire.com
 * Carl Reinke               https://github.com/mindless2112
+* Rodrigo Reis              https://github.com/rodrigoreis
 * Gian Maria Ricci          https://github.com/alkampfergit
 * Andrew Rondeau            github@andrewrondeau.com
 * Ed Rooth                  edward.rooth@wallstreetjapan.com

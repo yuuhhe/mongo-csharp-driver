@@ -148,6 +148,11 @@ namespace MongoDB.Driver.Tests.Specifications.Runner
             }
         }
 
+        protected virtual void AssertOperation(JsonDrivenTest jsonDrivenTest)
+        {
+            jsonDrivenTest.Assert();
+        }
+
         protected virtual void AssertOutcome(BsonDocument test)
         {
             if (test.TryGetValue(OutcomeKey, out var outcome))
@@ -237,8 +242,18 @@ namespace MongoDB.Driver.Tests.Specifications.Runner
                 {
                     jsonDrivenTest.Act(CancellationToken.None);
                 }
-                jsonDrivenTest.Assert();
+                AssertOperation(jsonDrivenTest);
             }
+        }
+
+        protected virtual string GetCollectionName(BsonDocument definition)
+        {
+            return definition[CollectionNameKey].AsString;
+        }
+
+        protected virtual string GetDatabaseName(BsonDocument definition)
+        {
+            return definition[DatabaseNameKey].AsString;
         }
 
         protected virtual void InsertData(IMongoClient client, string databaseName, string collectionName, BsonDocument shared)
@@ -464,8 +479,8 @@ namespace MongoDB.Driver.Tests.Specifications.Runner
 
             CustomDataValidation(shared, test);
 
-            DatabaseName = shared[DatabaseNameKey].AsString;
-            CollectionName = shared[CollectionNameKey].AsString;
+            DatabaseName = GetDatabaseName(shared);
+            CollectionName = GetCollectionName(shared);
 
             var client = CreateClientForTestSetup();
             TestInitialize(client, test, shared);
