@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard1.5;netstandard2.0;net452</TargetFrameworks>
+    <TargetFrameworks>netstandard2.1</TargetFrameworks>
     <LangVersion>7.3</LangVersion>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors />
@@ -14,15 +14,18 @@
     <Company>MongoDB Inc.</Company>
     <Copyright>Copyright © 2010-present MongoDB Inc.</Copyright>
     <Description>Official MongoDB supported driver for MongoDB.  See http://www.mongodb.org/display/DOCS/CSharp+Language+Center for more details.</Description>
-    <Authors>vincentkam;dmitry_lukyanov;rstam;craiggwilson</Authors>
+    <Authors>vincentkam;dmitry_lukyanov;rstam;craiggwilson;yuuhhe</Authors>
     <PackageIcon>packageIcon.png</PackageIcon>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <PackageDescription>Official .NET driver for MongoDB.</PackageDescription>
+    <PackageDescription>Added Official MongoDB .NET Driver support Unix Domain Socket</PackageDescription>
     <PackageProjectUrl>http://www.mongodb.org/display/DOCS/CSharp+Language+Center</PackageProjectUrl>
     <PackageLicenseFile>License.txt</PackageLicenseFile>
-    <PackageTags>mongodb;mongo;nosql</PackageTags>
+    <PackageTags>mongodb;mongo;nosql;uds;unixdomainsocket</PackageTags>
     <PackageLanguage>en-US</PackageLanguage>
     <IncludeSymbols>true</IncludeSymbols>
+    <RepositoryUrl>https://github.com/yuuhhe/mongo-csharp-driver</RepositoryUrl>
+    <PackageId>MongoDB.Driver.UnixDomainSocket</PackageId>
+    <Version>2.11.5</Version>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Version)'==''">
@@ -33,10 +36,6 @@
     <DefineConstants>TRACE</DefineConstants>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(TargetFramework)'=='netstandard1.5'">
-    <NetStandardImplicitPackageVersion>1.6.1</NetStandardImplicitPackageVersion>
-  </PropertyGroup>
-
   <PropertyGroup>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
@@ -45,13 +44,8 @@
     <PackageReference Include="MongoDB.Libmongocrypt" Version="1.0.0" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard1.5'">
-    <PackageReference Include="System.ComponentModel.TypeConverter" Version="4.1.0" />
-    <PackageReference Include="System.Linq.Queryable" Version="4.0.1" />
-  </ItemGroup>
-
   <ItemGroup>
-    <ProjectReference Include="..\MongoDB.Bson\MongoDB.Bson.csproj" />
+    <PackageReference Include="MongoDB.Bson" Version="2.11.5" />
     <ProjectReference Include="..\MongoDB.Driver.Core\MongoDB.Driver.Core.csproj" />
   </ItemGroup>
 
@@ -63,7 +57,7 @@
 
   <ItemGroup>
     <None Include="..\..\License.txt" Pack="true" PackagePath="$(PackageLicenseFile)" />
-    <None Include="..\..\packageIcon.png" Pack="true" PackagePath=""/>
+    <None Include="..\..\packageIcon.png" Pack="true" PackagePath="" />
   </ItemGroup>
 
 </Project>

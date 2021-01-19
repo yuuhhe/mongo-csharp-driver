@@ -48,7 +48,7 @@ namespace MongoDB.Driver.Core.Connections
         // methods
         public Stream CreateStream(EndPoint endPoint, CancellationToken cancellationToken)
         {
-#if NETSTANDARD1_5 || NETSTANDARD2_0
+#if NETSTANDARD1_5 || NETSTANDARD2_0 || NETSTANDARD2_1
             // ugh... I know... but there isn't a non-async version of dns resolution
             // in .NET Core
             var resolved = ResolveEndPointsAsync(endPoint).GetAwaiter().GetResult();
@@ -82,7 +82,7 @@ namespace MongoDB.Driver.Core.Connections
 
         public async Task<Stream> CreateStreamAsync(EndPoint endPoint, CancellationToken cancellationToken)
         {
-#if NETSTANDARD1_5 || NETSTANDARD2_0
+#if NETSTANDARD1_5 || NETSTANDARD2_0 || NETSTANDARD2_1
             var resolved = await ResolveEndPointsAsync(endPoint).ConfigureAwait(false);
             for (int i = 0; i < resolved.Length; i++)
             {
@@ -115,7 +115,8 @@ namespace MongoDB.Driver.Core.Connections
         // non-public methods
         private void ConfigureConnectedSocket(Socket socket)
         {
-            socket.NoDelay = true;
+            if (socket.AddressFamily != AddressFamily.Unix)
+                socket.NoDelay = true;
             socket.ReceiveBufferSize = _settings.ReceiveBufferSize;
             socket.SendBufferSize = _settings.SendBufferSize;
 
@@ -181,7 +182,7 @@ namespace MongoDB.Driver.Core.Connections
                 try
                 {
                     var dnsEndPoint = endPoint as DnsEndPoint;
-#if NETSTANDARD1_5 || NETSTANDARD2_0
+#if NETSTANDARD1_5 || NETSTANDARD2_0 || NETSTANDARD2_1
                     await socket.ConnectAsync(endPoint).ConfigureAwait(false);
 #else
                     if (dnsEndPoint != null)
@@ -258,8 +259,12 @@ namespace MongoDB.Driver.Core.Connections
             {
                 addressFamily = _settings.AddressFamily;
             }
-
-            var socket = new Socket(addressFamily, SocketType.Stream, ProtocolType.Tcp);
+            var protocolType = ProtocolType.Tcp;
+            if (addressFamily == AddressFamily.Unix)
+            {
+                protocolType = ProtocolType.Unspecified;
+            }
+            var socket = new Socket(addressFamily, SocketType.Stream, protocolType);
 
             // not all platforms support IOControl
             try

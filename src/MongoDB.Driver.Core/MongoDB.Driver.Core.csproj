@@ -1,7 +1,7 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard1.5;netstandard2.0;net452</TargetFrameworks>
+    <TargetFrameworks>netstandard2.1</TargetFrameworks>
     <LangVersion>7.3</LangVersion>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors />
@@ -14,15 +14,18 @@
     <Company>MongoDB Inc.</Company>
     <Copyright>Copyright © 2010-present MongoDB Inc.</Copyright>
     <Description>Official MongoDB supported Driver Core library. See http://www.mongodb.org/display/DOCS/CSharp+Language+Center for more details.</Description>
-    <Authors>vincentkam;dmitry_lukyanov;rstam;craiggwilson</Authors>
+    <Authors>vincentkam;dmitry_lukyanov;rstam;craiggwilson;yuuhhe</Authors>
     <PackageIcon>packageIcon.png</PackageIcon>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <PackageDescription>Core Component of the Official MongoDB .NET Driver.</PackageDescription>
+    <PackageDescription>Support snappy std compression on Linux</PackageDescription>
     <PackageProjectUrl>http://www.mongodb.org/display/DOCS/CSharp+Language+Center</PackageProjectUrl>
     <PackageLicenseFile>License.txt</PackageLicenseFile>
-    <PackageTags>mongodb;mongo;nosql</PackageTags>
+    <PackageTags>mongodb;mongo;nosql;uds;unixdomainsocket;zstd;zstandard</PackageTags>
     <PackageLanguage>en-US</PackageLanguage>
     <IncludeSymbols>true</IncludeSymbols>
+    <RepositoryUrl>https://github.com/yuuhhe/mongo-csharp-driver</RepositoryUrl>
+    <PackageId>MongoDB.Driver.Core.UnixDomainSocket</PackageId>
+    <Version>2.11.5</Version>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -45,10 +48,6 @@
     <DefineConstants>TRACE</DefineConstants>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(TargetFramework)'=='netstandard1.5'">
-    <NetStandardImplicitPackageVersion>1.6.1</NetStandardImplicitPackageVersion>
-  </PropertyGroup>
-
   <PropertyGroup>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <RootNamespace>MongoDB.Driver</RootNamespace>
@@ -58,98 +57,18 @@
     <NoWarn>NU5100</NoWarn>
   </PropertyGroup>
 
-  <!--Compression-->
-  <PropertyGroup>
-    <CompressionRuntimesPath>runtimes/win/native</CompressionRuntimesPath>
-  </PropertyGroup>
-
-  <!--Snappy-->
   <ItemGroup>
-    <None Remove="snappy32.dll" />
-    <None Remove="snappy64.dll" />
-  </ItemGroup>
-
-  <PropertyGroup>
-    <SnappyBinaries>Core/Compression/Snappy/lib/win</SnappyBinaries>
-  </PropertyGroup>
-
-  <ItemGroup Condition=" '$(IsWindows)' == true ">
-    <Content Include="$(SnappyBinaries)/snappy32.dll">
-      <Pack>true</Pack>
-      <PackagePath>$(CompressionRuntimesPath)</PackagePath>
-    </Content>
-    <Content Include="$(SnappyBinaries)/snappy64.dll">
-      <Pack>true</Pack>
-      <PackagePath>$(CompressionRuntimesPath)</PackagePath>
-    </Content>
-  </ItemGroup>
-
-  <ItemGroup Condition=" '$(IsWindows)' == true ">
-    <Content Include="$(SnappyBinaries)/snappy32.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Link>snappy32.dll</Link>
-    </Content>
-    <Content Include="$(SnappyBinaries)/snappy64.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Link>snappy64.dll</Link>
-    </Content>
-  </ItemGroup>
-
-  <!--Zstd-->
-  <ItemGroup>
-    <None Remove="libzstd.dll" />
-  </ItemGroup>
-
-  <PropertyGroup>
-    <ZstdBinaries>Core/Compression/Zstandard/lib/win</ZstdBinaries>
-  </PropertyGroup>
-
-  <ItemGroup Condition=" '$(IsWindows)' == true ">
-    <Content Include="$(ZstdBinaries)/libzstd.dll">
-      <Pack>true</Pack>
-      <PackagePath>$(CompressionRuntimesPath)</PackagePath>
-    </Content>
-  </ItemGroup>
-
-  <ItemGroup Condition=" '$(IsWindows)' == true ">
-    <Content Include="$(ZstdBinaries)/libzstd.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Link>libzstd.dll</Link>
-    </Content>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="MongoDB.Driver.Core.targets">
-      <Pack>true</Pack>
-      <PackagePath>build</PackagePath>
-    </Content>
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="DnsClient" Version="1.3.1" />
+    <PackageReference Include="DnsClient" Version="1.3.2" />
     <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.6.2" PrivateAssets="All" />
     <PackageReference Include="MongoDB.Libmongocrypt" Version="1.0.0" />
-    <PackageReference Include="SharpCompress" Version="0.23.0" />
-    <PackageReference Include="System.Buffers" Version="4.4.0" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'net452'">
-    <PackageReference Include="System.Runtime.InteropServices.RuntimeInformation" Version="4.3.0" />
-    <PackageReference Include="System.Net.Http" Version="4.3.4" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard1.5'">
-    <PackageReference Include="System.Collections.Specialized" Version="4.0.1" />
-    <PackageReference Include="System.Diagnostics.TextWriterTraceListener" Version="4.0.0" />
-    <PackageReference Include="System.Diagnostics.TraceSource" Version="4.3.0" />
-    <PackageReference Include="System.Net.NameResolution" Version="4.3.0" />
-    <PackageReference Include="System.Net.Security" Version="4.3.2" />
-    <PackageReference Include="System.Security.SecureString" Version="4.0.0" />
-    <PackageReference Include="System.Threading.Thread" Version="4.3.0" />
+    <PackageReference Include="SharpCompress" Version="0.26.0" />
+    <PackageReference Include="System.Buffers" Version="4.5.1" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\MongoDB.Bson\MongoDB.Bson.csproj" />
+    <PackageReference Include="MongoDB.Bson" Version="2.11.5" />
+    <PackageReference Include="ImpromptuNinjas.ZStd" Version="1.4.5.5" />
+    <PackageReference Include="Snappy.Standard" Version="0.2.0" />
   </ItemGroup>
 
   <ItemGroup>

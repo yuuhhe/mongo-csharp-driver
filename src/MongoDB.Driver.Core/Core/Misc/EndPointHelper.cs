@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -194,6 +195,13 @@ namespace MongoDB.Driver.Core.Misc
 
             if (value != null)
             {
+                var uri = WebUtility.UrlDecode(value);
+                if (uri.Contains('/'))
+                {
+                    result = new UnixDomainSocketEndPoint(uri);
+                    return true;
+                }
+
                 value = value.ToLowerInvariant();
                 var match = Regex.Match(value, @"^(?<address>\[[^]]+\])(:(?<port>\d+))?$");
                 if (match.Success)
