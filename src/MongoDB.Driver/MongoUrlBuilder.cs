@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using MongoDB.Bson;
@@ -64,7 +65,7 @@ namespace MongoDB.Driver
         private bool? _retryReads;
         private bool? _retryWrites;
         private ConnectionStringScheme _scheme;
-        private IEnumerable<MongoServerAddress> _servers;
+        private IEnumerable<EndPoint> _servers;
         private TimeSpan _serverSelectionTimeout;
         private TimeSpan _socketTimeout;
         private bool? _tlsDisableCertificateRevocationCheck;
@@ -114,7 +115,7 @@ namespace MongoDB.Driver
             _retryWrites = null;
             _localThreshold = MongoDefaults.LocalThreshold;
             _scheme = ConnectionStringScheme.MongoDB;
-            _servers = new[] { new MongoServerAddress("localhost", 27017) };
+            _servers = new[] { new DnsEndPoint("localhost", 27017) };
             _serverSelectionTimeout = MongoDefaults.ServerSelectionTimeout;
             _socketTimeout = MongoDefaults.SocketTimeout;
             _username = null;
@@ -499,7 +500,7 @@ namespace MongoDB.Driver
         /// <summary>
         /// Gets or sets the address of the server (see also Servers if using more than one address).
         /// </summary>
-        public MongoServerAddress Server
+        public EndPoint Server
         {
             get { return (_servers == null) ? null : _servers.Single(); }
             set { _servers = (value == null) ? null : new[] { value }; }
@@ -508,7 +509,7 @@ namespace MongoDB.Driver
         /// <summary>
         /// Gets or sets the list of server addresses (see also Server if using only one address).
         /// </summary>
-        public IEnumerable<MongoServerAddress> Servers
+        public IEnumerable<EndPoint> Servers
         {
             get { return _servers; }
             set { _servers = value; }
@@ -759,29 +760,30 @@ namespace MongoDB.Driver
             _retryWrites = connectionString.RetryWrites;
             _localThreshold = connectionString.LocalThreshold.GetValueOrDefault(MongoDefaults.LocalThreshold);
             _scheme = connectionString.Scheme;
-            _servers = connectionString.Hosts.Select(endPoint =>
-            {
-                DnsEndPoint dnsEndPoint;
-                IPEndPoint ipEndPoint;
-                if ((dnsEndPoint = endPoint as DnsEndPoint) != null)
-                {
-                    return new MongoServerAddress(dnsEndPoint.Host, dnsEndPoint.Port);
-                }
-                else if ((ipEndPoint = endPoint as IPEndPoint) != null)
-                {
-                    var address = ipEndPoint.Address.ToString();
-                    if (ipEndPoint.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6)
-                    {
-                        address = "[" + address + "]";
-                    }
-                    return new MongoServerAddress(address, ipEndPoint.Port);
-                }
-                else
-                {
-                    throw new NotSupportedException("Only DnsEndPoint and IPEndPoints are supported in the connection string.");
-                }
-            });
-            _serverSelectionTimeout = connectionString.ServerSelectionTimeout.GetValueOrDefault(MongoDefaults.ServerSelectionTimeout);
+            _servers = connectionString.Hosts;
+            //_servers = connectionString.Hosts.Select(endPoint =>
+            //{
+            //    DnsEndPoint dnsEndPoint;
+            //    IPEndPoint ipEndPoint;
+            //    if ((dnsEndPoint = endPoint as DnsEndPoint) != null)
+            //    {
+            //        return new MongoServerAddress(dnsEndPoint.Host, dnsEndPoint.Port);
+            //    }
+            //    else if ((ipEndPoint = endPoint as IPEndPoint) != null)
+            //    {
+            //        var address = ipEndPoint.Address.ToString();
+            //        if (ipEndPoint.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6)
+            //        {
+            //            address = "[" + address + "]";
+            //        }
+            //        return new MongoServerAddress(address, ipEndPoint.Port);
+            //    }
+            //    else
+            //    {
+            //        throw new NotSupportedException("Only DnsEndPoint and IPEndPoints are supported in the connection string.");
+            //    }
+            //});
+            //_serverSelectionTimeout = connectionString.ServerSelectionTimeout.GetValueOrDefault(MongoDefaults.ServerSelectionTimeout);
             _socketTimeout = connectionString.SocketTimeout.GetValueOrDefault(MongoDefaults.SocketTimeout);
             _tlsDisableCertificateRevocationCheck = connectionString.TlsDisableCertificateRevocationCheck;
             _username = connectionString.Username;
@@ -844,17 +846,10 @@ namespace MongoDB.Driver
             if (_servers != null)
             {
                 bool firstServer = true;
-                foreach (MongoServerAddress server in _servers)
+                foreach (EndPoint server in _servers)
                 {
                     if (!firstServer) { url.Append(","); }
-                    if (server.Port == 27017 || _scheme == ConnectionStringScheme.MongoDBPlusSrv)
-                    {
-                        url.Append(server.Host);
-                    }
-                    else
-                    {
-                        url.AppendFormat("{0}:{1}", server.Host, server.Port);
-                    }
+                    url.Append(server.ToString());
                     firstServer = false;
                 }
             }
