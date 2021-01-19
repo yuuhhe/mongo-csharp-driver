@@ -80,7 +80,7 @@ namespace MongoDB.Driver
 
         private ClusterSettings ConfigureCluster(ClusterSettings settings, ClusterKey clusterKey)
         {
-            var endPoints = clusterKey.Servers.Select(s => EndPointHelper.Parse(s.ToString()));
+            var endPoints = clusterKey.Servers;
             return settings.With(
                 connectionMode: clusterKey.ConnectionMode.ToCore(),
                 endPoints: Optional.Enumerable(endPoints),

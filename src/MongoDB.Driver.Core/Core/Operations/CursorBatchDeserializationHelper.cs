@@ -38,7 +38,7 @@ namespace MongoDB.Driver.Core.Operations
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times")]
         public static List<TDocument> DeserializeBatch<TDocument>(RawBsonArray batch, IBsonSerializer<TDocument> documentSerializer, MessageEncoderSettings messageEncoderSettings)
         {
-            var documents = new List<TDocument>();
+            var documents = new List<TDocument>(batch.Count);
 
             var readerSettings = new BsonBinaryReaderSettings();
             if (messageEncoderSettings != null)

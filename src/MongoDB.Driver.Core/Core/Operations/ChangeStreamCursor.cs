@@ -20,6 +20,7 @@ using MongoDB.Driver.Core.Bindings;
 using MongoDB.Driver.Core.Misc;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -172,7 +173,7 @@ namespace MongoDB.Driver.Core.Operations
 
         private IEnumerable<TDocument> DeserializeDocuments(IEnumerable<RawBsonDocument> rawDocuments)
         {
-            var documents = new List<TDocument>();
+            var documents = new List<TDocument>(rawDocuments.Count());
             RawBsonDocument lastRawDocument = null;
 
             _postBatchResumeToken = ((ICursorBatchInfo)_cursor).PostBatchResumeToken;
