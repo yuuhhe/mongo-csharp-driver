@@ -32,6 +32,8 @@
     <PackageLanguage>en-US</PackageLanguage>
     <IncludeSymbols>true</IncludeSymbols>
     <RepositoryUrl>https://github.com/yuuhhe/mongo-csharp-driver</RepositoryUrl>
+    <PackageId>MongoDB.Driver.Core.UnixDomainSocket</PackageId>
+    <Version>2.12.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -150,7 +152,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\MongoDB.Bson\MongoDB.Bson.csproj" />
+    <PackageReference Include="MongoDB.Bson" Version="2.12.0" />
   </ItemGroup>
 
   <ItemGroup>
