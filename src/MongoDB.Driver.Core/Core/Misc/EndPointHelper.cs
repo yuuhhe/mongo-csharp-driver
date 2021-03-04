@@ -194,6 +194,14 @@ namespace MongoDB.Driver.Core.Misc
 
             if (value != null)
             {
+#if NETSTANDARD2_1
+                var uri = WebUtility.UrlDecode(value);
+                if (uri.Contains('/'))
+                {
+                    result = new UnixDomainSocketEndPoint(uri);
+                    return true;
+                }
+#endif
                 value = value.ToLowerInvariant();
                 var match = Regex.Match(value, @"^(?<address>\[[^]]+\])(:(?<port>\d+))?$");
                 if (match.Success)

@@ -20,15 +20,18 @@
     <Company>MongoDB Inc.</Company>
     <Copyright>Copyright © 2010-present MongoDB Inc.</Copyright>
     <Description>Official MongoDB supported Driver Core library. See https://docs.mongodb.com/drivers/csharp/ for more details.</Description>
-    <Authors>MongoDB Inc.</Authors>
+    <Authors>MongoDB Inc.;yuuhhe</Authors>
     <PackageIcon>packageIcon.png</PackageIcon>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <PackageDescription>Core Component of the Official MongoDB .NET Driver.</PackageDescription>
+    <PackageDescription>
+      Added Unix Domain Socket support to Official MongoDB .NET Driver
+    </PackageDescription>
     <PackageProjectUrl>https://docs.mongodb.com/drivers/csharp/</PackageProjectUrl>
     <PackageLicenseFile>License.txt</PackageLicenseFile>
-    <PackageTags>mongodb;mongo;nosql</PackageTags>
+    <PackageTags>mongodb;mongo;nosql;uds;unixdomainsocket</PackageTags>
     <PackageLanguage>en-US</PackageLanguage>
     <IncludeSymbols>true</IncludeSymbols>
+    <RepositoryUrl>https://github.com/yuuhhe/mongo-csharp-driver</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>

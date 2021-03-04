@@ -16,6 +16,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using MongoDB.Bson;
@@ -69,7 +70,7 @@ namespace MongoDB.Driver
         private readonly bool? _retryWrites;
         private readonly TimeSpan _localThreshold;
         private readonly ConnectionStringScheme _scheme;
-        private readonly IEnumerable<MongoServerAddress> _servers;
+        private readonly IEnumerable<EndPoint> _servers;
         private readonly TimeSpan _serverSelectionTimeout;
         private readonly TimeSpan _socketTimeout;
         private readonly bool _tlsDisableCertificateRevocationCheck;
@@ -465,7 +466,7 @@ namespace MongoDB.Driver
         /// <summary>
         /// Gets the address of the server (see also Servers if using more than one address).
         /// </summary>
-        public MongoServerAddress Server
+        public EndPoint Server
         {
             get { return (_servers == null) ? null : _servers.Single(); }
         }
@@ -473,7 +474,7 @@ namespace MongoDB.Driver
         /// <summary>
         /// Gets the list of server addresses (see also Server if using only one address).
         /// </summary>
-        public IEnumerable<MongoServerAddress> Servers
+        public IEnumerable<EndPoint> Servers
         {
             get { return _servers; }
         }
