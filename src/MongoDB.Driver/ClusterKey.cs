@@ -16,6 +16,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using MongoDB.Bson;
 using MongoDB.Driver.Core.Clusters;
 using MongoDB.Driver.Core.Configuration;
@@ -54,7 +55,7 @@ namespace MongoDB.Driver
         private readonly ConnectionStringScheme _scheme;
         private readonly string _sdamLogFilename;
         private readonly int _sendBufferSize;
-        private readonly IReadOnlyList<MongoServerAddress> _servers;
+        private readonly IReadOnlyList<EndPoint> _servers;
         private readonly TimeSpan _serverSelectionTimeout;
         private readonly TimeSpan _socketTimeout;
         private readonly SslSettings _sslSettings;
@@ -90,7 +91,7 @@ namespace MongoDB.Driver
             ConnectionStringScheme scheme,
             string sdamLogFilename,
             int sendBufferSize,
-            IReadOnlyList<MongoServerAddress> servers,
+            IReadOnlyList<EndPoint> servers,
             TimeSpan serverSelectionTimeout,
             TimeSpan socketTimeout,
             SslSettings sslSettings,
@@ -184,7 +185,7 @@ namespace MongoDB.Driver
         public ConnectionStringScheme Scheme { get { return _scheme; } }
         public string SdamLogFilename { get { return _sdamLogFilename; } }
         public int SendBufferSize { get { return _sendBufferSize; } }
-        public IReadOnlyList<MongoServerAddress> Servers { get { return _servers; } }
+        public IReadOnlyList<EndPoint> Servers { get { return _servers; } }
         public TimeSpan ServerSelectionTimeout { get { return _serverSelectionTimeout; } }
         public TimeSpan SocketTimeout { get { return _socketTimeout; } }
         public SslSettings SslSettings { get { return _sslSettings; } }

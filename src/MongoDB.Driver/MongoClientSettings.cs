@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Net;
 using System.Text;
 using MongoDB.Bson;
 using MongoDB.Driver.Core.Clusters;
@@ -62,7 +63,7 @@ namespace MongoDB.Driver
         private bool _retryWrites;
         private ConnectionStringScheme _scheme;
         private string _sdamLogFilename;
-        private List<MongoServerAddress> _servers;
+        private List<EndPoint> _servers;
         private TimeSpan _serverSelectionTimeout;
         private TimeSpan _socketTimeout;
         private SslSettings _sslSettings;
@@ -116,7 +117,7 @@ namespace MongoDB.Driver
             _retryWrites = true;
             _scheme = ConnectionStringScheme.MongoDB;
             _sdamLogFilename = null;
-            _servers = new List<MongoServerAddress> { new MongoServerAddress("localhost") };
+            _servers = new List<EndPoint> { new DnsEndPoint("localhost", 27017) };
             _serverSelectionTimeout = MongoDefaults.ServerSelectionTimeout;
             _socketTimeout = MongoDefaults.SocketTimeout;
             _sslSettings = null;
@@ -577,7 +578,7 @@ namespace MongoDB.Driver
         /// <summary>
         /// Gets or sets the address of the server (see also Servers if using more than one address).
         /// </summary>
-        public MongoServerAddress Server
+        public EndPoint Server
         {
             get { return _servers.Single(); }
             set
@@ -587,16 +588,16 @@ namespace MongoDB.Driver
                 {
                     throw new ArgumentNullException("value");
                 }
-                _servers = new List<MongoServerAddress> { value };
+                _servers = new List<EndPoint> { value };
             }
         }
 
         /// <summary>
         /// Gets or sets the list of server addresses (see also Server if using only one address).
         /// </summary>
-        public IEnumerable<MongoServerAddress> Servers
+        public IEnumerable<EndPoint> Servers
         {
-            get { return new ReadOnlyCollection<MongoServerAddress>(_servers); }
+            get { return new ReadOnlyCollection<EndPoint>(_servers); }
             set
             {
                 if (_isFrozen) { throw new InvalidOperationException("MongoClientSettings is frozen."); }
@@ -604,7 +605,7 @@ namespace MongoDB.Driver
                 {
                     throw new ArgumentNullException("value");
                 }
-                _servers = new List<MongoServerAddress>(value);
+                _servers = new List<EndPoint>(value);
             }
         }
 
@@ -866,7 +867,7 @@ namespace MongoDB.Driver
             clientSettings.RetryWrites = url.RetryWrites.GetValueOrDefault(true);
             clientSettings.LocalThreshold = url.LocalThreshold;
             clientSettings.Scheme = url.Scheme;
-            clientSettings.Servers = new List<MongoServerAddress>(url.Servers);
+            clientSettings.Servers = new List<EndPoint>(url.Servers);
             clientSettings.ServerSelectionTimeout = url.ServerSelectionTimeout;
             clientSettings.SocketTimeout = url.SocketTimeout;
             clientSettings.SslSettings = null;
@@ -919,7 +920,7 @@ namespace MongoDB.Driver
             clone._localThreshold = _localThreshold;
             clone._scheme = _scheme;
             clone._sdamLogFilename = _sdamLogFilename;
-            clone._servers = new List<MongoServerAddress>(_servers);
+            clone._servers = new List<EndPoint>(_servers);
             clone._serverSelectionTimeout = _serverSelectionTimeout;
             clone._socketTimeout = _socketTimeout;
             clone._sslSettings = (_sslSettings == null) ? null : _sslSettings.Clone();

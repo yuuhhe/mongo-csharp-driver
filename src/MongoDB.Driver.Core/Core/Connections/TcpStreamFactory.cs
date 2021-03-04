@@ -115,7 +115,8 @@ namespace MongoDB.Driver.Core.Connections
         // non-public methods
         private void ConfigureConnectedSocket(Socket socket)
         {
-            socket.NoDelay = true;
+            if (socket.AddressFamily != AddressFamily.Unix)
+                socket.NoDelay = true;
             socket.ReceiveBufferSize = _settings.ReceiveBufferSize;
             socket.SendBufferSize = _settings.SendBufferSize;
 
@@ -258,8 +259,12 @@ namespace MongoDB.Driver.Core.Connections
             {
                 addressFamily = _settings.AddressFamily;
             }
-
-            var socket = new Socket(addressFamily, SocketType.Stream, ProtocolType.Tcp);
+            var protocolType = ProtocolType.Tcp;
+            if (addressFamily == AddressFamily.Unix)
+            {
+                protocolType = ProtocolType.Unspecified;
+            }
+            var socket = new Socket(addressFamily, SocketType.Stream, protocolType);
 
             // not all platforms support IOControl
             try

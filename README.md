@@ -1,4 +1,18 @@
-﻿MongoDB C# Driver
+﻿UnixDomainSocket MongoDB .NET Driver
+=================
+Added Unix Domain Socket support to Official MongoDB .NET Driver
+### Usage
+
+Mongod's Configuration File :
+```
+ net.bindIp: /tmp/mongod.sock
+```
+You can connect to /tmp/mongod.sock in this :
+```C#
+var client = new MongoClient("mongodb://%2Ftmp%2Fmongod.sock");
+```
+
+MongoDB C# Driver
 =================
 
 You can get the latest stable release from the [official Nuget.org feed](https://www.nuget.org/packages/MongoDB.Driver) or from our [github releases page](https://github.com/mongodb/mongo-csharp-driver/releases).
