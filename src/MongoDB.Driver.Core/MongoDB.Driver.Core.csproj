@@ -122,7 +122,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="MongoDB.Driver.Core.targets">
+    <Content Include="MongoDB.Driver.Core.UnixDomainSocket.targets">
       <Pack>true</Pack>
       <PackagePath>build</PackagePath>
     </Content>
