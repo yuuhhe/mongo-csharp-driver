@@ -1,4 +1,15 @@
-﻿MongoDB C# Driver
+﻿And support snappy zstd compressions on Linux
+=================
+```
+net:
+   compression:
+      compressors: zstd,snappy
+```
+```C#
+var client = new MongoClient("mongodb://%2Ftmp%2Fmongod.sock?compressors=zstandard,snappy");
+```
+
+MongoDB C# Driver
 =================
 
 You can get the latest stable release from the [official Nuget.org feed](https://www.nuget.org/packages/MongoDB.Driver) or from our [github releases page](https://github.com/mongodb/mongo-csharp-driver/releases).

@@ -20,15 +20,18 @@
     <Company>MongoDB Inc.</Company>
     <Copyright>Copyright © 2010-present MongoDB Inc.</Copyright>
     <Description>Official MongoDB supported Driver Core library. See https://docs.mongodb.com/drivers/csharp/ for more details.</Description>
-    <Authors>MongoDB Inc.</Authors>
+    <Authors>MongoDB Inc.;yuuhhe</Authors>
     <PackageIcon>packageIcon.png</PackageIcon>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <PackageDescription>Core Component of the Official MongoDB .NET Driver.</PackageDescription>
+    <PackageDescription>
+      And support snappy zstd compression on Linux
+    </PackageDescription>
     <PackageProjectUrl>https://docs.mongodb.com/drivers/csharp/</PackageProjectUrl>
     <PackageLicenseFile>License.txt</PackageLicenseFile>
-    <PackageTags>mongodb;mongo;nosql</PackageTags>
+    <PackageTags>mongodb;mongo;nosql;snappy;zstd;zstandard</PackageTags>
     <PackageLanguage>en-US</PackageLanguage>
     <IncludeSymbols>true</IncludeSymbols>
+    <RepositoryUrl>https://github.com/yuuhhe/mongo-csharp-driver</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>
@@ -56,12 +59,13 @@
     <NoWarn>NU5100</NoWarn>
   </PropertyGroup>
 
-  <!--Compression-->
+<!--
+  --><!--Compression--><!--
   <PropertyGroup>
     <CompressionRuntimesPath>runtimes/win/native</CompressionRuntimesPath>
   </PropertyGroup>
 
-  <!--Snappy-->
+  --><!--Snappy--><!--
   <ItemGroup>
     <None Remove="snappy32.dll" />
     <None Remove="snappy64.dll" />
@@ -93,7 +97,7 @@
     </Content>
   </ItemGroup>
 
-  <!--Zstd-->
+  --><!--Zstd--><!--
   <ItemGroup>
     <None Remove="libzstd.dll" />
   </ItemGroup>
@@ -122,6 +126,7 @@
       <PackagePath>build</PackagePath>
     </Content>
   </ItemGroup>
+-->
 
   <ItemGroup>
     <PackageReference Include="DnsClient" Version="1.4.0" />
@@ -148,6 +153,14 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MongoDB.Bson\MongoDB.Bson.csproj" />
+    <PackageReference Include="ImpromptuNinjas.ZStd" Version="1.4.5.5" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net452'">
+    <PackageReference Include="Snappy.NET" Version="1.1.1.8" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' != 'net452'">
+    <PackageReference Include="IronSnappy " Version="1.3.0" />
+    <!--<PackageReference Include="Snappy.Standard" Version="0.2.0" />-->
   </ItemGroup>
 
   <ItemGroup>
