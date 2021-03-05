@@ -54,8 +54,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\MongoDB.Bson\MongoDB.Bson.csproj" />
-    <ProjectReference Include="..\MongoDB.Driver\MongoDB.Driver.csproj" />
+    <PackageReference Include="MongoDB.Bson" Version="2.12.0" />    <ProjectReference Include="..\MongoDB.Driver\MongoDB.Driver.csproj" />
     <ProjectReference Include="..\MongoDB.Driver.Core\MongoDB.Driver.Core.csproj" />
   </ItemGroup>
 
@@ -65,7 +64,7 @@
 
   <ItemGroup>
     <None Include="..\..\License.txt" Pack="true" PackagePath="$(PackageLicenseFile)" />
-    <None Include="..\..\packageIcon.png" Pack="true" PackagePath=""/>
+    <None Include="..\..\packageIcon.png" Pack="true" PackagePath="" />
   </ItemGroup>
 
 </Project>

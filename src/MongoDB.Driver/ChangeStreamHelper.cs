@@ -118,5 +118,30 @@ namespace MongoDB.Driver
             operation.StartAfter = options.StartAfter;
             operation.StartAtOperationTime = options.StartAtOperationTime;
         }
+
+        public static ChangeStreamOperation<TResult> CreateRawChangeStreamOperation<TResult, TDocument>(
+            IMongoCollection<TDocument> collection,
+            PipelineDefinition<ChangeStreamDocument<TDocument>, TResult> pipeline,
+            IBsonSerializer<TDocument> documentSerializer,
+            ChangeStreamOptions options,
+            ReadConcern readConcern,
+            MessageEncoderSettings messageEncoderSettings,
+            bool retryRequested)
+        {
+            var renderedPipeline = RenderPipeline(pipeline, documentSerializer);
+
+            var operation = new RawChangeStreamOperation<TResult>(
+                collection.CollectionNamespace,
+                renderedPipeline.Documents,
+                renderedPipeline.OutputSerializer,
+                messageEncoderSettings)
+            {
+                RetryRequested = retryRequested
+            };
+            SetOperationOptions(operation, options, readConcern);
+
+            return operation;
+        }
+
     }
 }

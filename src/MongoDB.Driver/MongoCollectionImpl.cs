@@ -1297,7 +1297,7 @@ namespace MongoDB.Driver
             }
         }
 
-        private TResult UsingImplicitSession<TResult>(Func<IClientSessionHandle, TResult> func, CancellationToken cancellationToken = default(CancellationToken))
+        internal TResult UsingImplicitSession<TResult>(Func<IClientSessionHandle, TResult> func, CancellationToken cancellationToken = default(CancellationToken))
         {
             using (var session = _operationExecutor.StartImplicitSession(cancellationToken))
             {
