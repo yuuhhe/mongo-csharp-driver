@@ -81,7 +81,7 @@ namespace MongoDB.Driver
         private ClusterSettings ConfigureCluster(ClusterSettings settings, ClusterKey clusterKey)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
-            var endPoints = clusterKey.Servers.Select(s => EndPointHelper.Parse(s.ToString()));
+            var endPoints = clusterKey.Servers;//.Select(s => EndPointHelper.Parse(s.ToString()));
             var connectionModeSwitch = clusterKey.ConnectionModeSwitch;
             Optional<ClusterConnectionMode> connectionMode = connectionModeSwitch == ConnectionModeSwitch.UseConnectionMode ? clusterKey.ConnectionMode.ToCore() : default;
             Optional<bool?> directConnection = connectionModeSwitch == ConnectionModeSwitch.UseDirectConnection ? clusterKey.DirectConnection : default;
