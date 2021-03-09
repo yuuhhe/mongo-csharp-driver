@@ -2332,117 +2332,10 @@ namespace MongoDB.Driver
             return new MongoQueryableImpl<TDocument, TDocument>(provider);
         }
 
-        public static IChangeStreamCursor<ChangeStreamDocument<TDocument>> FastWatch<TDocument>(
+        /// <inheritdoc />
+        public static IChangeStreamCursor<TResult> FastWatch<TDocument, TResult>(
             this IMongoCollection<TDocument> collection,
-            PipelineDefinition<ChangeStreamDocument<TDocument>, ChangeStreamDocument<TDocument>> pipeline,
-            ChangeStreamOptions options = null,
-            CancellationToken cancellationToken = default(CancellationToken))
-        {
-            Ensure.IsNotNull(collection, nameof(collection));
-            Ensure.IsNotNull(pipeline, nameof(pipeline));
-
-            if (collection is MongoCollectionImpl<TDocument> mongoCollection)
-            {
-                return mongoCollection.UsingImplicitSession(session =>
-                {
-                    var operation = CreateChangeStreamOperation(mongoCollection, pipeline, options);
-                    return ExecuteReadOperation(session, operation, cancellationToken);
-                    //return FastWatch(session, pipeline, options, cancellationToken);
-                }, cancellationToken);
-            }
-            else
-            {
-                throw new MongoException("Parameter collection must be MongoCollectionImpl type");
-            }
-        }
-
-        //private static IChangeStreamCursor<TResult> FastWatch<TDocument,TResult>(
-        //    IClientSessionHandle session,
-        //    PipelineDefinition<ChangeStreamDocument<TDocument>, TResult> pipeline,
-        //    ChangeStreamOptions options = null,
-        //    CancellationToken cancellationToken = default(CancellationToken))
-        //{
-        //    Ensure.IsNotNull(session, nameof(session));
-        //    Ensure.IsNotNull(pipeline, nameof(pipeline));
-        //    var operation = CreateChangeStreamOperation(pipeline, options);
-        //    return ExecuteReadOperation(session, operation, cancellationToken);
-        //}
-
-        private static RawChangeStreamOperation<TResult> CreateChangeStreamOperation<TDocument,TResult>(
-            MongoCollectionImpl<TDocument> mongoCollection,
             PipelineDefinition<ChangeStreamDocument<TDocument>, TResult> pipeline,
-            ChangeStreamOptions options)
-        {
-
-            return ChangeStreamHelper.CreateRawChangeStreamOperation(
-                mongoCollection,
-                pipeline,
-                mongoCollection.DocumentSerializer,
-                options,
-                mongoCollection.Settings.ReadConcern,
-                messageEncoderSettings: mongoCollection.GetMessageEncoderSettings(),
-                mongoCollection.Database.Client.Settings.RetryReads);
-
-            var changeStreamDocumentSerializer = new ChangeStreamDocumentSerializer<TDocument>(mongoCollection.DocumentSerializer);
-            var serializerRegistry = Bson.Serialization.BsonSerializer.SerializerRegistry;
-            var renderedPipeline = pipeline.Render(changeStreamDocumentSerializer, serializerRegistry);
-
-            // TODO remove
-            var messageEncoderSettings = new Core.WireProtocol.Messages.Encoders.MessageEncoderSettings;
-      
-            var operation = new RawChangeStreamOperation<TResult>(
-                mongoCollection.CollectionNamespace,
-                renderedPipeline.Documents,
-                renderedPipeline.OutputSerializer,
-                messageEncoderSettings)
-            {
-                RetryRequested = mongoCollection.Database.Client.Settings.RetryReads
-            };
-
-            options = options ?? new ChangeStreamOptions();
-            operation.BatchSize = options.BatchSize;
-            operation.Collation = options.Collation;
-            operation.FullDocument = options.FullDocument;
-            operation.MaxAwaitTime = options.MaxAwaitTime;
-            operation.ReadConcern = mongoCollection.Settings.ReadConcern;
-            operation.ResumeAfter = options.ResumeAfter;
-            operation.StartAfter = options.StartAfter;
-            operation.StartAtOperationTime = options.StartAtOperationTime;
-
-            return operation;
-
-            //return ChangeStreamHelper.CreateChangeStreamOperation(
-            //    this,
-            //    pipeline,
-            //    _documentSerializer,
-            //    options,
-            //    _settings.ReadConcern, messageEncoderSettings: _messageEncoderSettings,
-            //    _database.Client.Settings.RetryReads);
-        }
-        private static TResult ExecuteReadOperation<TResult>(IClientSessionHandle session, IReadOperation<TResult> operation, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            var effectiveReadPreference = ReadPreferenceResolver.GetEffectiveReadPreference(session, null, _settings.ReadPreference);
-            //return ExecuteReadOperation(session, operation, effectiveReadPreference, cancellationToken);
-            using (var binding = CreateReadBinding(session, readPreference))
-            {
-                return _operationExecutor.ExecuteReadOperation(binding, operation, cancellationToken);
-            }
-        }
-
-        private static TResult ExecuteReadOperation<TResult>(IClientSessionHandle session, IReadOperation<TResult> operation, ReadPreference readPreference, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            using (var binding = CreateReadBinding(session, readPreference))
-            {
-                return _operationExecutor.ExecuteReadOperation(binding, operation, cancellationToken);
-            }
-        }
-
-
-
-
-        public static Task<IChangeStreamCursor<ChangeStreamDocument<TDocument>>> FastWatchAsync<TDocument>(
-            this IMongoCollection<TDocument> collection,
-            PipelineDefinition<ChangeStreamDocument<TDocument>, ChangeStreamDocument<TDocument>> pipeline,
             ChangeStreamOptions options = null,
             CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -2451,7 +2344,7 @@ namespace MongoDB.Driver
 
             if (collection is MongoCollectionImpl<TDocument> mongoCollection)
             {
-                return await mongoCollection.UsingImplicitSessionAsync(session => WatchAsync(session, pipeline, options, cancellationToken), cancellationToken);
+                return mongoCollection.FastWatch(pipeline, options, cancellationToken);
             }
             else
             {

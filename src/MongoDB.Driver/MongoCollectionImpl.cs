@@ -606,6 +606,14 @@ namespace MongoDB.Driver
             return UsingImplicitSession(session => Watch(session, pipeline, options, cancellationToken), cancellationToken);
         }
 
+        public IChangeStreamCursor<TResult> FastWatch<TResult>(
+            PipelineDefinition<ChangeStreamDocument<TDocument>, TResult> pipeline,
+            ChangeStreamOptions options = null,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return UsingImplicitSession(session => FastWatch(session, pipeline, options, cancellationToken), cancellationToken);
+        }
+
         public override IChangeStreamCursor<TResult> Watch<TResult>(
             IClientSessionHandle session,
             PipelineDefinition<ChangeStreamDocument<TDocument>, TResult> pipeline,
@@ -615,6 +623,18 @@ namespace MongoDB.Driver
             Ensure.IsNotNull(session, nameof(session));
             Ensure.IsNotNull(pipeline, nameof(pipeline));
             var operation = CreateChangeStreamOperation(pipeline, options);
+            return ExecuteReadOperation(session, operation, cancellationToken);
+        }
+
+        public IChangeStreamCursor<TResult> FastWatch<TResult>(
+            IClientSessionHandle session,
+            PipelineDefinition<ChangeStreamDocument<TDocument>, TResult> pipeline,
+            ChangeStreamOptions options = null,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            Ensure.IsNotNull(session, nameof(session));
+            Ensure.IsNotNull(pipeline, nameof(pipeline));
+            var operation = CreateRawChangeStreamOperation(pipeline, options);
             return ExecuteReadOperation(session, operation, cancellationToken);
         }
 
@@ -894,6 +914,19 @@ namespace MongoDB.Driver
             ChangeStreamOptions options)
         {
             return ChangeStreamHelper.CreateChangeStreamOperation(
+                this,
+                pipeline,
+                _documentSerializer,
+                options,
+                _settings.ReadConcern, messageEncoderSettings: _messageEncoderSettings,
+                _database.Client.Settings.RetryReads);
+        }
+
+        private RawChangeStreamOperation<TResult> CreateRawChangeStreamOperation<TResult>(
+            PipelineDefinition<ChangeStreamDocument<TDocument>, TResult> pipeline,
+            ChangeStreamOptions options)
+        {
+            return ChangeStreamHelper.CreateRawChangeStreamOperation(
                 this,
                 pipeline,
                 _documentSerializer,

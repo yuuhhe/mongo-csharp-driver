@@ -119,7 +119,7 @@ namespace MongoDB.Driver
             operation.StartAtOperationTime = options.StartAtOperationTime;
         }
 
-        public static ChangeStreamOperation<TResult> CreateRawChangeStreamOperation<TResult, TDocument>(
+        public static RawChangeStreamOperation<TResult> CreateRawChangeStreamOperation<TResult, TDocument>(
             IMongoCollection<TDocument> collection,
             PipelineDefinition<ChangeStreamDocument<TDocument>, TResult> pipeline,
             IBsonSerializer<TDocument> documentSerializer,

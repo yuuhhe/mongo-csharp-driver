@@ -367,7 +367,7 @@ namespace MongoDB.Driver.Core.Operations
             };
         }
 
-        private AsyncCursor<TResult> CreateCursor(IChannelSourceHandle channelSource, IChannelHandle channel, BsonDocument command, AggregateResult result)
+        private RawAsyncCursor<TResult> CreateCursor(IChannelSourceHandle channelSource, IChannelHandle channel, BsonDocument command, AggregateResult result)
         {
             if (result.CursorId.HasValue)
             {
@@ -379,10 +379,10 @@ namespace MongoDB.Driver.Core.Operations
             }
         }
 
-        private AsyncCursor<TResult> CreateCursorFromCursorResult(IChannelSourceHandle channelSource, BsonDocument command, AggregateResult result)
+        private RawAsyncCursor<TResult> CreateCursorFromCursorResult(IChannelSourceHandle channelSource, BsonDocument command, AggregateResult result)
         {
             var getMoreChannelSource = new ServerChannelSource(channelSource.Server, channelSource.Session.Fork());
-            return new AsyncCursor<TResult>(
+            return new RawAsyncCursor<TResult>(
                 getMoreChannelSource,
                 result.CollectionNamespace,
                 command,
@@ -396,9 +396,9 @@ namespace MongoDB.Driver.Core.Operations
                 _maxAwaitTime);
         }
 
-        private AsyncCursor<TResult> CreateCursorFromInlineResult(BsonDocument command, AggregateResult result)
+        private RawAsyncCursor<TResult> CreateCursorFromInlineResult(BsonDocument command, AggregateResult result)
         {
-            return new AsyncCursor<TResult>(
+            return new RawAsyncCursor<TResult>(
                 null, // channelSource
                 CollectionNamespace,
                 command,
