@@ -34,7 +34,7 @@ namespace MongoDB.Driver.Core.Operations
     /// <summary>
     /// Represents an aggregate operation.
     /// </summary>
-    public class RawAggregateOperation : IReadOperation<IAsyncCursor<RawBsonArray>>, IExecutableInRetryableReadContext<IAsyncCursor<RawBsonArray>>
+    public class RawAggregateOperation : IReadOperation<IAsyncCursor<RawBsonDocument>>, IExecutableInRetryableReadContext<IAsyncCursor<RawBsonDocument>>
     {
         // fields
         private bool? _allowDiskUse;
@@ -261,7 +261,7 @@ namespace MongoDB.Driver.Core.Operations
 
         // methods
         /// <inheritdoc/>
-        public IAsyncCursor<RawBsonArray> Execute(IReadBinding binding, CancellationToken cancellationToken)
+        public IAsyncCursor<RawBsonDocument> Execute(IReadBinding binding, CancellationToken cancellationToken)
         {
             Ensure.IsNotNull(binding, nameof(binding));
 
@@ -272,7 +272,7 @@ namespace MongoDB.Driver.Core.Operations
         }
 
         /// <inheritdoc/>
-        public IAsyncCursor<RawBsonArray> Execute(RetryableReadContext context, CancellationToken cancellationToken)
+        public IAsyncCursor<RawBsonDocument> Execute(RetryableReadContext context, CancellationToken cancellationToken)
         {
             Ensure.IsNotNull(context, nameof(context));
             EnsureIsReadOnlyPipeline();
@@ -286,7 +286,7 @@ namespace MongoDB.Driver.Core.Operations
         }
 
         /// <inheritdoc/>
-        public async Task<IAsyncCursor<RawBsonArray>> ExecuteAsync(IReadBinding binding, CancellationToken cancellationToken)
+        public async Task<IAsyncCursor<RawBsonDocument>> ExecuteAsync(IReadBinding binding, CancellationToken cancellationToken)
         {
             Ensure.IsNotNull(binding, nameof(binding));
 
@@ -297,7 +297,7 @@ namespace MongoDB.Driver.Core.Operations
         }
 
         /// <inheritdoc/>
-        public async Task<IAsyncCursor<RawBsonArray>> ExecuteAsync(RetryableReadContext context, CancellationToken cancellationToken)
+        public async Task<IAsyncCursor<RawBsonDocument>> ExecuteAsync(RetryableReadContext context, CancellationToken cancellationToken)
         {
             Ensure.IsNotNull(context, nameof(context));
             EnsureIsReadOnlyPipeline();
@@ -374,7 +374,8 @@ namespace MongoDB.Driver.Core.Operations
             }
             else
             {
-                return CreateCursorFromInlineResult(command, result);
+                //return CreateCursorFromInlineResult(command, result);
+                throw new NotSupportedException();
             }
         }
 
@@ -385,31 +386,30 @@ namespace MongoDB.Driver.Core.Operations
                 getMoreChannelSource,
                 result.CollectionNamespace,
                 command,
-                result.Results,
+                result.Result,
                 result.CursorId.GetValueOrDefault(0),
                 result.PostBatchResumeToken,
                 _batchSize,
-                null, // limit
                 _resultSerializer,
                 MessageEncoderSettings,
                 _maxAwaitTime);
         }
 
-        private RawAsyncCursor CreateCursorFromInlineResult(BsonDocument command, AggregateResult result)
-        {
-            return new RawAsyncCursor(
-                null, // channelSource
-                CollectionNamespace,
-                command,
-                result.Results,
-                0, // cursorId
-                null, // postBatchResumeToken
-                null, // batchSize
-                null, // limit
-                _resultSerializer,
-                MessageEncoderSettings,
-                _maxAwaitTime);
-        }
+        //private RawAsyncCursor CreateCursorFromInlineResult(BsonDocument command, AggregateResult result)
+        //{
+        //    return new RawAsyncCursor(
+        //        null, // channelSource
+        //        CollectionNamespace,
+        //        command,
+        //        result.Results,
+        //        0, // cursorId
+        //        null, // postBatchResumeToken
+        //        null, // batchSize
+        //        null, // limit
+        //        _resultSerializer,
+        //        MessageEncoderSettings,
+        //        _maxAwaitTime);
+        //}
 
         private void EnsureIsReadOnlyPipeline()
         {
@@ -424,7 +424,7 @@ namespace MongoDB.Driver.Core.Operations
             public long? CursorId;
             public CollectionNamespace CollectionNamespace;
             public BsonDocument PostBatchResumeToken;
-            public RawBsonArray Results;
+            public RawBsonDocument Result;
         }
 
         private class AggregateResultDeserializer : SerializerBase<AggregateResult>
@@ -449,15 +449,12 @@ namespace MongoDB.Driver.Core.Operations
                         var cursorDeserializer = new CursorDeserializer(_resultSerializer);
                         result = cursorDeserializer.Deserialize(context);
                     }
-                    else if (elementName == "result")
-                    {
-                        var slice = reader.ReadRawBsonArray();
-                        var nestedArray = new RawBsonArray(slice);
-                        result.Results = nestedArray;
-                        //var arraySerializer = new RawBsonArraySerializer(_resultSerializer);
-                        //result = new AggregateResult();
-                        //result.Results = arraySerializer.Deserialize(context);
-                    }
+                    //else if (elementName == "result")
+                    //{
+                    //    var arraySerializer = new ArraySerializer(_resultSerializer);
+                    //    result = new AggregateResult();
+                    //    result.Results = arraySerializer.Deserialize(context);
+                    //}
                     else
                     {
                         reader.SkipValue();
@@ -499,9 +496,10 @@ namespace MongoDB.Driver.Core.Operations
                         case "firstBatch":
                             //var arraySerializer = new ArraySerializer<RawBsonDocument>(_resultSerializer);
                             //result.Results = arraySerializer.Deserialize(context);
-                            var slice = reader.ReadRawBsonArray();
-                            var nestedArray = new RawBsonArray(slice);
-                            result.Results = nestedArray;
+                            result.Result = _resultSerializer.Deserialize(context);
+                            //var slice = reader.ReadRawBsonArray();
+                            //var nestedArray = new RawBsonArray(slice);
+                            //result.Results = nestedArray;
                             break;
 
                         case "postBatchResumeToken":

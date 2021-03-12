@@ -108,13 +108,13 @@ namespace MongoDB.Driver.Core.Operations
             return operation;
         }
 
-        private IAsyncCursor<RawBsonArray> ExecuteAggregateOperation(RetryableReadContext context, CancellationToken cancellationToken)
+        private IAsyncCursor<RawBsonDocument> ExecuteAggregateOperation(RetryableReadContext context, CancellationToken cancellationToken)
         {
             var aggregateOperation = CreateAggregateOperation();
             return aggregateOperation.Execute(context, cancellationToken);
         }
 
-        private Task<IAsyncCursor<RawBsonArray>> ExecuteAggregateOperationAsync(RetryableReadContext context, CancellationToken cancellationToken)
+        private Task<IAsyncCursor<RawBsonDocument>> ExecuteAggregateOperationAsync(RetryableReadContext context, CancellationToken cancellationToken)
         {
             var aggregateOperation = CreateAggregateOperation();
             return aggregateOperation.ExecuteAsync(context, cancellationToken);
@@ -152,7 +152,7 @@ namespace MongoDB.Driver.Core.Operations
                 throw new ArgumentException("The binding value passed to ChangeStreamOperation.Execute must implement IReadBindingHandle.", nameof(binding));
             }
 
-            IAsyncCursor<RawBsonArray> cursor;
+            IAsyncCursor<RawBsonDocument> cursor;
             ICursorBatchInfo cursorBatchInfo;
             BsonTimestamp initialOperationTime;
             using (var context = RetryableReadContext.Create(binding, RetryRequested, cancellationToken))
@@ -186,7 +186,7 @@ namespace MongoDB.Driver.Core.Operations
                 throw new ArgumentException("The binding value passed to ChangeStreamOperation.ExecuteAsync must implement IReadBindingHandle.", nameof(binding));
             }
 
-            IAsyncCursor<RawBsonArray> cursor;
+            IAsyncCursor<RawBsonDocument> cursor;
             ICursorBatchInfo cursorBatchInfo;
             BsonTimestamp initialOperationTime;
             using (var context = await RetryableReadContext.CreateAsync(binding, RetryRequested, cancellationToken).ConfigureAwait(false))
@@ -211,7 +211,7 @@ namespace MongoDB.Driver.Core.Operations
             }
         }
 
-        IAsyncCursor<RawBsonArray> IChangeStreamOperation<TResult>.Resume(IReadBinding binding, CancellationToken cancellationToken)
+        IAsyncCursor<RawBsonDocument> IChangeStreamOperation<TResult>.Resume(IReadBinding binding, CancellationToken cancellationToken)
         {
             using (var context = RetryableReadContext.Create(binding, retryRequested: false, cancellationToken))
             {
@@ -219,7 +219,7 @@ namespace MongoDB.Driver.Core.Operations
             }
         }
 
-        async Task<IAsyncCursor<RawBsonArray>> IChangeStreamOperation<TResult>.ResumeAsync(IReadBinding binding, CancellationToken cancellationToken)
+        async Task<IAsyncCursor<RawBsonDocument>> IChangeStreamOperation<TResult>.ResumeAsync(IReadBinding binding, CancellationToken cancellationToken)
         {
             using (var context = await RetryableReadContext.CreateAsync(binding, retryRequested: false, cancellationToken).ConfigureAwait(false))
             {

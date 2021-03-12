@@ -26,7 +26,7 @@ namespace MongoDB.Driver.Core.WireProtocol
     {
         // fields
         private readonly long _cursorId;
-        private readonly RawBsonArray _documents;
+        private readonly RawBsonDocument _document;
         private readonly BsonDocument _postBatchResumeToken;
 
         // constructors
@@ -35,24 +35,24 @@ namespace MongoDB.Driver.Core.WireProtocol
         /// </summary>
         /// <param name="cursorId">The cursor identifier.</param>
         /// <param name="postBatchResumeToken">The post batch resume token.</param>
-        /// <param name="documents">The documents.</param>
+        /// <param name="document">The documents.</param>
         public RawCursorBatch(
             long cursorId,
             BsonDocument postBatchResumeToken,
-            RawBsonArray documents)
+            RawBsonDocument document)
         {
             _cursorId = cursorId;
             _postBatchResumeToken = postBatchResumeToken;
-            _documents = Ensure.IsNotNull(documents, nameof(documents));
+            _document = Ensure.IsNotNull(document, nameof(document));
         }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CursorBatch{TDocument}"/> struct.
         /// </summary>
         /// <param name="cursorId">The cursor identifier.</param>
-        /// <param name="documents">The documents.</param>
-        public RawCursorBatch(long cursorId, RawBsonArray documents)
-            : this(cursorId, null, documents)
+        /// <param name="document">The documents.</param>
+        public RawCursorBatch(long cursorId, RawBsonDocument document)
+            : this(cursorId, null, document)
         {
         }
 
@@ -74,9 +74,9 @@ namespace MongoDB.Driver.Core.WireProtocol
         /// <value>
         /// The documents.
         /// </value>
-        public RawBsonArray Documents
+        public RawBsonDocument Document
         {
-            get { return _documents; }
+            get { return _document; }
         }
 
         /// <summary>

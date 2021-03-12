@@ -65,46 +65,6 @@ namespace MongoDB.Driver.Core.Operations
         //private readonly IBsonSerializer<RawBsonDocument> _serializer;
         private readonly bool _wasFirstBatchEmpty;
 
-        // constructors
-        /// <summary>
-        /// Initializes a new instance of the <see cref="AsyncCursor{TDocument}"/> class.
-        /// </summary>
-        /// <param name="channelSource">The channel source.</param>
-        /// <param name="collectionNamespace">The collection namespace.</param>
-        /// <param name="query">The query.</param>
-        /// <param name="firstBatch">The first batch.</param>
-        /// <param name="cursorId">The cursor identifier.</param>
-        /// <param name="batchSize">The size of a batch.</param>
-        /// <param name="limit">The limit.</param>
-        /// <param name="serializer">The serializer.</param>
-        /// <param name="messageEncoderSettings">The message encoder settings.</param>
-        /// <param name="maxTime">The maxTime for each batch.</param>
-        public RawAsyncCursor(
-            IChannelSource channelSource,
-            CollectionNamespace collectionNamespace,
-            BsonDocument query,
-            RawBsonDocument firstBatch,
-            long cursorId,
-            int? batchSize,
-            int? limit,
-            IBsonSerializer<RawBsonDocument> serializer,
-            MessageEncoderSettings messageEncoderSettings,
-            TimeSpan? maxTime = null)
-            : this(
-                channelSource,
-                collectionNamespace,
-                query,
-                firstBatch,
-                cursorId,
-                null, // postBatchResumeToken
-                batchSize,
-                limit,
-                serializer,
-                messageEncoderSettings,
-                maxTime)
-        {
-        }
-
         /// <summary>
         /// Initializes a new instance of the <see cref="AsyncCursor{TDocument}"/> class.
         /// </summary>
@@ -115,7 +75,6 @@ namespace MongoDB.Driver.Core.Operations
         /// <param name="cursorId">The cursor identifier.</param>
         /// <param name="postBatchResumeToken">The post batch resume token.</param>
         /// <param name="batchSize">The size of a batch.</param>
-        /// <param name="limit">The limit.</param>
         /// <param name="serializer">The serializer.</param>
         /// <param name="messageEncoderSettings">The message encoder settings.</param>
         /// <param name="maxTime">The maxTime for each batch.</param>
@@ -127,7 +86,6 @@ namespace MongoDB.Driver.Core.Operations
             long cursorId,
             BsonDocument postBatchResumeToken,
             int? batchSize,
-            int? limit,
             IBsonSerializer<RawBsonDocument> serializer,
             MessageEncoderSettings messageEncoderSettings,
             TimeSpan? maxTime)
@@ -152,6 +110,9 @@ namespace MongoDB.Driver.Core.Operations
             //_count = _firstBatch.Count;
             //_wasFirstBatchEmpty = firstBatch.Count == 0;
             // TODO
+            _wasFirstBatchEmpty = true;
+            //var batch = (RawBsonArray)firstBatch;
+            //_wasFirstBatchEmpty = batch.Count == 0;
 
             DisposeChannelSourceIfNoLongerNeeded();
         }
@@ -243,7 +204,7 @@ namespace MongoDB.Driver.Core.Operations
         {
             var cursorDocument = result["cursor"].AsBsonDocument;
             var cursorId = cursorDocument["id"].ToInt64();
-            var batch = (RawBsonArray)cursorDocument["nextBatch"];
+            var batch = (RawBsonDocument)cursorDocument["nextBatch"];
             var postBatchResumeToken = (BsonDocument)cursorDocument.GetValue("postBatchResumeToken", null);
 
             //using (batch)
@@ -281,10 +242,10 @@ namespace MongoDB.Driver.Core.Operations
         private RawCursorBatch ExecuteGetMoreCommand(IChannelHandle channel, CancellationToken cancellationToken)
         {
             var command = CreateGetMoreCommand();
-            BsonDocument result;
+            RawBsonDocument result;
             try
             {
-                result = channel.Command<BsonDocument>(
+                result = channel.Command<RawBsonDocument>(
                     _channelSource.Session,
                     null, // readPreference
                     _collectionNamespace.DatabaseNamespace,
@@ -294,7 +255,7 @@ namespace MongoDB.Driver.Core.Operations
                     null, // additionalOptions
                     null, // postWriteAction
                     CommandResponseHandling.Return,
-                    __getMoreCommandResultSerializer,
+                    RawBsonDocumentSerializer.Instance,
                     _messageEncoderSettings,
                     cancellationToken);
             }
@@ -618,9 +579,9 @@ namespace MongoDB.Driver.Core.Operations
 
         private void SaveBatch(RawCursorBatch batch)
         {
-            var documents = batch.Documents;
+            var documents = batch.Document;
 
-            _count += documents.Count;
+            //_count += documents.Count;
             //if (_limit > 0 && _count > _limit.Value)
             //{
             //    var remove = _count - _limit.Value;
@@ -683,11 +644,11 @@ namespace MongoDB.Driver.Core.Operations
                 return true;
             }
 
-            if (_cursorId == 0 || (_limit > 0 && _count == _limit.Value))
-            {
-                _currentBatch = null;
-                return true;
-            }
+            //if (_cursorId == 0 || (_limit > 0 && _count == _limit.Value))
+            //{
+            //    _currentBatch = null;
+            //    return true;
+            //}
 
             return false;
         }
