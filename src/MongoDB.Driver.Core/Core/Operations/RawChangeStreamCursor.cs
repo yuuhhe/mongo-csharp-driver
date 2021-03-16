@@ -28,18 +28,17 @@ namespace MongoDB.Driver.Core.Operations
     /// <summary>
     /// A change stream cursor.
     /// </summary>
-    /// <typeparam name="TDocument">The type of the output documents.</typeparam>
     /// <seealso cref="MongoDB.Driver.IAsyncCursor{TOutput}" />
-    internal sealed class RawChangeStreamCursor<TDocument> : IChangeStreamCursor<TDocument>
+    internal sealed class RawChangeStreamCursor : IChangeStreamCursor<RawBsonDocument>
     {
         // private fields
         private readonly IReadBinding _binding;
-        private readonly IChangeStreamOperation<TDocument> _changeStreamOperation;
-        private IEnumerable<TDocument> _current;
+        private readonly IChangeStreamOperation<RawBsonDocument> _changeStreamOperation;
+        private IEnumerable<RawBsonDocument> _current;
         private IAsyncCursor<RawBsonDocument> _cursor;
         private bool _disposed;
         private BsonDocument _documentResumeToken;
-        private readonly IBsonSerializer<TDocument> _documentSerializer;
+        private readonly IBsonSerializer<RawBsonDocument> _documentSerializer;
         private readonly BsonTimestamp _initialOperationTime;
         private BsonDocument _postBatchResumeToken;
         private readonly BsonDocument _initialResumeAfter;
@@ -49,11 +48,11 @@ namespace MongoDB.Driver.Core.Operations
 
         // public properties
         /// <inheritdoc />
-        public IEnumerable<TDocument> Current => _current;
+        public IEnumerable<RawBsonDocument> Current => _current;
 
         // constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="ChangeStreamCursor{TDocument}" /> class.
+        /// Initializes a new instance of the <see cref="ChangeStreamCursor{RawBsonDocument}" /> class.
         /// </summary>
         /// <param name="cursor">The cursor.</param>
         /// <param name="documentSerializer">The document serializer.</param>
@@ -67,9 +66,9 @@ namespace MongoDB.Driver.Core.Operations
         /// <param name="serverVersion">The server version.</param>
         public RawChangeStreamCursor(
             IAsyncCursor<RawBsonDocument> cursor,
-            IBsonSerializer<TDocument> documentSerializer,
+            IBsonSerializer<RawBsonDocument> documentSerializer,
             IReadBinding binding,
-            IChangeStreamOperation<TDocument> changeStreamOperation,
+            IChangeStreamOperation<RawBsonDocument> changeStreamOperation,
             BsonDocument aggregatePostBatchResumeToken,
             BsonTimestamp initialOperationTime,
             BsonDocument initialStartAfter,
@@ -160,7 +159,7 @@ namespace MongoDB.Driver.Core.Operations
 
         // private methods
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times")]
-        private TDocument DeserializeDocument(RawBsonDocument rawDocument)
+        private RawBsonDocument DeserializeDocument(RawBsonDocument rawDocument)
         {
             using (var stream = new ByteBufferStream(rawDocument.Slice, ownsBuffer: false))
             using (var reader = new BsonBinaryReader(stream))
@@ -170,9 +169,9 @@ namespace MongoDB.Driver.Core.Operations
             }
         }
 
-        private IEnumerable<TDocument> DeserializeDocuments(IEnumerable<RawBsonDocument> rawDocuments)
+        private IEnumerable<RawBsonDocument> DeserializeDocuments(IEnumerable<RawBsonDocument> rawDocuments)
         {
-            var documents = new List<TDocument>();
+            var documents = new List<RawBsonDocument>();
             RawBsonDocument lastRawDocument = null;
 
             _postBatchResumeToken = ((ICursorBatchInfo)_cursor).PostBatchResumeToken;
@@ -232,17 +231,18 @@ namespace MongoDB.Driver.Core.Operations
         {
             if (hasMore)
             {
-                try
-                {
-                    _current = DeserializeDocuments(_cursor.Current);
-                }
-                finally
-                {
-                    foreach (var rawDocument in _cursor.Current)
-                    {
-                        rawDocument.Dispose();
-                    }
-                }
+                _current = _cursor.Current;
+                //try
+                //{
+                //    _current = DeserializeDocuments(_cursor.Current);
+                //}
+                //finally
+                //{
+                //    foreach (var rawDocument in _cursor.Current)
+                //    {
+                //        rawDocument.Dispose();
+                //    }
+                //}
             }
             else
             {

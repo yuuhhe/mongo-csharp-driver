@@ -204,7 +204,8 @@ namespace MongoDB.Driver.Core.Operations
         {
             var cursorDocument = result["cursor"].AsBsonDocument;
             var cursorId = cursorDocument["id"].ToInt64();
-            var batch = (RawBsonDocument)cursorDocument["nextBatch"];
+            //var batch = (RawBsonDocument)cursorDocument["nextBatch"];
+            var batch = (RawBsonDocument)cursorDocument;
             var postBatchResumeToken = (BsonDocument)cursorDocument.GetValue("postBatchResumeToken", null);
 
             //using (batch)
@@ -634,6 +635,7 @@ namespace MongoDB.Driver.Core.Operations
             if (_firstBatch != null)
             {
                 _currentBatch = _firstBatch;
+                //_currentBatch = (RawBsonDocument)_firstBatch["cursor"];
                 _firstBatch = null;
                 hasMore = true;
                 return true;

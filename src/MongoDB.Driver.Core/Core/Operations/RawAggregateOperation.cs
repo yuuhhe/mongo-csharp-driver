@@ -355,28 +355,41 @@ namespace MongoDB.Driver.Core.Operations
             return command;
         }
 
-        private ReadCommandOperation<AggregateResult> CreateOperation(RetryableReadContext context)
+        private ReadCommandOperation<RawBsonDocument> CreateOperation(RetryableReadContext context)
         {
             var databaseNamespace = _collectionNamespace == null ? _databaseNamespace : _collectionNamespace.DatabaseNamespace;
             var command = CreateCommand(context.Channel.ConnectionDescription, context.Binding.Session);
-            var serializer = new AggregateResultDeserializer();
-            return new ReadCommandOperation<AggregateResult>(databaseNamespace, command, serializer, MessageEncoderSettings)
+            //var serializer = new AggregateResultDeserializer();
+            //return new ReadCommandOperation<AggregateResult>(databaseNamespace, command, serializer, MessageEncoderSettings)
+            return new ReadCommandOperation<RawBsonDocument>(databaseNamespace, command, RawBsonDocumentSerializer.Instance, MessageEncoderSettings)
             {
                 RetryRequested = _retryRequested // might be overridden by retryable read context
             };
         }
 
-        private RawAsyncCursor CreateCursor(IChannelSourceHandle channelSource, IChannelHandle channel, BsonDocument command, AggregateResult result)
+        private RawAsyncCursor CreateCursor(IChannelSourceHandle channelSource, IChannelHandle channel, BsonDocument command, RawBsonDocument result)
         {
-            if (result.CursorId.HasValue)
-            {
-                return CreateCursorFromCursorResult(channelSource, command, result);
-            }
-            else
-            {
-                //return CreateCursorFromInlineResult(command, result);
-                throw new NotSupportedException();
-            }
+            var cursorDocument = (RawBsonDocument)result["cursor"];
+            var cursorId = cursorDocument["id"].AsInt64;
+            var ns = cursorDocument["ns"].AsString;
+            var postBatchResumeToken = cursorDocument["postBatchResumeToken"].AsBsonDocument;
+
+            AggregateResult aggregateResult = new AggregateResult {
+                CursorId = cursorId,
+                CollectionNamespace = CollectionNamespace.FromFullName(ns),
+                PostBatchResumeToken = postBatchResumeToken,
+                Result = cursorDocument
+            };
+            return CreateCursorFromCursorResult(channelSource, command, aggregateResult);
+
+            //if (result.CursorId.HasValue)
+            //{
+            //    return CreateCursorFromCursorResult(channelSource, command, result);
+            //}
+            //else
+            //{
+            //    return CreateCursorFromInlineResult(command, result);
+            //}
         }
 
         private RawAsyncCursor CreateCursorFromCursorResult(IChannelSourceHandle channelSource, BsonDocument command, AggregateResult result)
@@ -427,6 +440,7 @@ namespace MongoDB.Driver.Core.Operations
             public RawBsonDocument Result;
         }
 
+        /*
         private class AggregateResultDeserializer : SerializerBase<AggregateResult>
         {
             private readonly IBsonSerializer<RawBsonDocument> _resultSerializer;
@@ -515,5 +529,7 @@ namespace MongoDB.Driver.Core.Operations
                 return result;
             }
         }
+        */
+
     }
 }

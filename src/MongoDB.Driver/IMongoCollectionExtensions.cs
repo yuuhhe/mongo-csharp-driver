@@ -18,6 +18,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
+using MongoDB.Bson;
 using MongoDB.Driver.Core.Misc;
 using MongoDB.Driver.Core.Operations;
 using MongoDB.Driver.Linq;
@@ -2333,7 +2334,7 @@ namespace MongoDB.Driver
         }
 
         /// <inheritdoc />
-        public static IChangeStreamCursor<TResult> FastWatch<TDocument, TResult>(
+        public static IChangeStreamCursor<RawBsonDocument> FastWatch<TDocument, TResult>(
             this IMongoCollection<TDocument> collection,
             PipelineDefinition<ChangeStreamDocument<TDocument>, TResult> pipeline,
             ChangeStreamOptions options = null,

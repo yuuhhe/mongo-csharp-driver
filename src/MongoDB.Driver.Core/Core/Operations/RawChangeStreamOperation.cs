@@ -28,24 +28,24 @@ using MongoDB.Driver.Core.WireProtocol.Messages.Encoders;
 namespace MongoDB.Driver.Core.Operations
 {
     /// <inheritdoc />
-    public class RawChangeStreamOperation<TResult> : ChangeStreamOperation<TResult>, IChangeStreamOperation<TResult>
+    public class RawChangeStreamOperation : ChangeStreamOperation<RawBsonDocument>, IChangeStreamOperation<RawBsonDocument>
     {
-        BsonDocument IChangeStreamOperation<TResult>.ResumeAfter { get => ResumeAfter; set => ResumeAfter = value; }
-        BsonDocument IChangeStreamOperation<TResult>.StartAfter { get => StartAfter; set => StartAfter = value; }
-        BsonTimestamp IChangeStreamOperation<TResult>.StartAtOperationTime { get => StartAtOperationTime; set => StartAtOperationTime = value; }
+        BsonDocument IChangeStreamOperation<RawBsonDocument>.ResumeAfter { get => ResumeAfter; set => ResumeAfter = value; }
+        BsonDocument IChangeStreamOperation<RawBsonDocument>.StartAfter { get => StartAfter; set => StartAfter = value; }
+        BsonTimestamp IChangeStreamOperation<RawBsonDocument>.StartAtOperationTime { get => StartAtOperationTime; set => StartAtOperationTime = value; }
 
         /// <inheritdoc />
-        public RawChangeStreamOperation(IEnumerable<BsonDocument> pipeline, IBsonSerializer<TResult> resultSerializer, MessageEncoderSettings messageEncoderSettings)
+        public RawChangeStreamOperation(IEnumerable<BsonDocument> pipeline, IBsonSerializer<RawBsonDocument> resultSerializer, MessageEncoderSettings messageEncoderSettings)
             : base(pipeline, resultSerializer, messageEncoderSettings) { }
 
         /// <inheritdoc />
-        public RawChangeStreamOperation(DatabaseNamespace databaseNamespace, IEnumerable<BsonDocument> pipeline, IBsonSerializer<TResult> resultSerializer, MessageEncoderSettings messageEncoderSettings)
+        public RawChangeStreamOperation(DatabaseNamespace databaseNamespace, IEnumerable<BsonDocument> pipeline, IBsonSerializer<RawBsonDocument> resultSerializer, MessageEncoderSettings messageEncoderSettings)
             : base(databaseNamespace, pipeline, resultSerializer, messageEncoderSettings) { }
 
         /// <inheritdoc />
         public RawChangeStreamOperation(
-            CollectionNamespace collectionNamespace, IEnumerable<BsonDocument> pipeline, IBsonSerializer<TResult> resultSerializer, MessageEncoderSettings messageEncoderSettings)
-            : base(collectionNamespace, pipeline, resultSerializer, messageEncoderSettings) { }
+            CollectionNamespace collectionNamespace, IEnumerable<BsonDocument> pipeline, MessageEncoderSettings messageEncoderSettings)
+            : base(collectionNamespace, pipeline, RawBsonDocumentSerializer.Instance, messageEncoderSettings) { }
 
         private BsonDocument CreateChangeStreamStage()
         {
@@ -143,7 +143,7 @@ namespace MongoDB.Driver.Core.Operations
             return null;
         }
 
-        IChangeStreamCursor<TResult> IReadOperation<IChangeStreamCursor<TResult>>.Execute(IReadBinding binding, CancellationToken cancellationToken)
+        IChangeStreamCursor<RawBsonDocument> IReadOperation<IChangeStreamCursor<RawBsonDocument>>.Execute(IReadBinding binding, CancellationToken cancellationToken)
         {
             Ensure.IsNotNull(binding, nameof(binding));
             var bindingHandle = binding as IReadBindingHandle;
@@ -163,7 +163,7 @@ namespace MongoDB.Driver.Core.Operations
 
                 var postBatchResumeToken = GetInitialPostBatchResumeTokenIfRequired(cursorBatchInfo);
 
-                return new RawChangeStreamCursor<TResult>(
+                return new RawChangeStreamCursor(
                     cursor,
                     ResultSerializer,
                     bindingHandle.Fork(),
@@ -177,7 +177,7 @@ namespace MongoDB.Driver.Core.Operations
             }
         }
 
-        async Task<IChangeStreamCursor<TResult>> IReadOperation<IChangeStreamCursor<TResult>>.ExecuteAsync(IReadBinding binding, CancellationToken cancellationToken)
+        async Task<IChangeStreamCursor<RawBsonDocument>> IReadOperation<IChangeStreamCursor<RawBsonDocument>>.ExecuteAsync(IReadBinding binding, CancellationToken cancellationToken)
         {
             Ensure.IsNotNull(binding, nameof(binding));
             var bindingHandle = binding as IReadBindingHandle;
@@ -197,7 +197,7 @@ namespace MongoDB.Driver.Core.Operations
 
                 var postBatchResumeToken = GetInitialPostBatchResumeTokenIfRequired(cursorBatchInfo);
 
-                return new RawChangeStreamCursor<TResult>(
+                return new RawChangeStreamCursor(
                     cursor,
                     ResultSerializer,
                     bindingHandle.Fork(),
@@ -211,7 +211,7 @@ namespace MongoDB.Driver.Core.Operations
             }
         }
 
-        IAsyncCursor<RawBsonDocument> IChangeStreamOperation<TResult>.Resume(IReadBinding binding, CancellationToken cancellationToken)
+        IAsyncCursor<RawBsonDocument> IChangeStreamOperation<RawBsonDocument>.Resume(IReadBinding binding, CancellationToken cancellationToken)
         {
             using (var context = RetryableReadContext.Create(binding, retryRequested: false, cancellationToken))
             {
@@ -219,7 +219,7 @@ namespace MongoDB.Driver.Core.Operations
             }
         }
 
-        async Task<IAsyncCursor<RawBsonDocument>> IChangeStreamOperation<TResult>.ResumeAsync(IReadBinding binding, CancellationToken cancellationToken)
+        async Task<IAsyncCursor<RawBsonDocument>> IChangeStreamOperation<RawBsonDocument>.ResumeAsync(IReadBinding binding, CancellationToken cancellationToken)
         {
             using (var context = await RetryableReadContext.CreateAsync(binding, retryRequested: false, cancellationToken).ConfigureAwait(false))
             {

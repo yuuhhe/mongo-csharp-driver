@@ -606,7 +606,7 @@ namespace MongoDB.Driver
             return UsingImplicitSession(session => Watch(session, pipeline, options, cancellationToken), cancellationToken);
         }
 
-        public IChangeStreamCursor<TResult> FastWatch<TResult>(
+        public IChangeStreamCursor<RawBsonDocument> FastWatch<TResult>(
             PipelineDefinition<ChangeStreamDocument<TDocument>, TResult> pipeline,
             ChangeStreamOptions options = null,
             CancellationToken cancellationToken = default(CancellationToken))
@@ -626,7 +626,7 @@ namespace MongoDB.Driver
             return ExecuteReadOperation(session, operation, cancellationToken);
         }
 
-        public IChangeStreamCursor<TResult> FastWatch<TResult>(
+        public IChangeStreamCursor<RawBsonDocument> FastWatch<TResult>(
             IClientSessionHandle session,
             PipelineDefinition<ChangeStreamDocument<TDocument>, TResult> pipeline,
             ChangeStreamOptions options = null,
@@ -922,7 +922,7 @@ namespace MongoDB.Driver
                 _database.Client.Settings.RetryReads);
         }
 
-        private RawChangeStreamOperation<TResult> CreateRawChangeStreamOperation<TResult>(
+        private RawChangeStreamOperation CreateRawChangeStreamOperation<TResult>(
             PipelineDefinition<ChangeStreamDocument<TDocument>, TResult> pipeline,
             ChangeStreamOptions options)
         {

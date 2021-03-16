@@ -119,7 +119,7 @@ namespace MongoDB.Driver
             operation.StartAtOperationTime = options.StartAtOperationTime;
         }
 
-        public static RawChangeStreamOperation<TResult> CreateRawChangeStreamOperation<TResult, TDocument>(
+        public static RawChangeStreamOperation CreateRawChangeStreamOperation<TResult, TDocument>(
             IMongoCollection<TDocument> collection,
             PipelineDefinition<ChangeStreamDocument<TDocument>, TResult> pipeline,
             IBsonSerializer<TDocument> documentSerializer,
@@ -130,10 +130,9 @@ namespace MongoDB.Driver
         {
             var renderedPipeline = RenderPipeline(pipeline, documentSerializer);
 
-            var operation = new RawChangeStreamOperation<TResult>(
+            var operation = new RawChangeStreamOperation(
                 collection.CollectionNamespace,
                 renderedPipeline.Documents,
-                renderedPipeline.OutputSerializer,
                 messageEncoderSettings)
             {
                 RetryRequested = retryRequested
