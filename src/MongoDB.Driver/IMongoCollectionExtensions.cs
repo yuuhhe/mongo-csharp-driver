@@ -2334,7 +2334,7 @@ namespace MongoDB.Driver
         }
 
         /// <inheritdoc />
-        public static IChangeStreamCursor<RawBsonDocument> FastWatch<TDocument, TResult>(
+        public static IChangeStreamCursor<RawBsonArray> FastWatch<TDocument, TResult>(
             this IMongoCollection<TDocument> collection,
             PipelineDefinition<ChangeStreamDocument<TDocument>, TResult> pipeline,
             ChangeStreamOptions options = null,

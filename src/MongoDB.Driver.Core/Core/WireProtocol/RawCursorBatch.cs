@@ -26,7 +26,7 @@ namespace MongoDB.Driver.Core.WireProtocol
     {
         // fields
         private readonly long _cursorId;
-        private readonly RawBsonDocument _document;
+        private readonly RawBsonArray _document;
         private readonly BsonDocument _postBatchResumeToken;
 
         // constructors
@@ -39,7 +39,7 @@ namespace MongoDB.Driver.Core.WireProtocol
         public RawCursorBatch(
             long cursorId,
             BsonDocument postBatchResumeToken,
-            RawBsonDocument document)
+            RawBsonArray document)
         {
             _cursorId = cursorId;
             _postBatchResumeToken = postBatchResumeToken;
@@ -51,7 +51,7 @@ namespace MongoDB.Driver.Core.WireProtocol
         /// </summary>
         /// <param name="cursorId">The cursor identifier.</param>
         /// <param name="document">The documents.</param>
-        public RawCursorBatch(long cursorId, RawBsonDocument document)
+        public RawCursorBatch(long cursorId, RawBsonArray document)
             : this(cursorId, null, document)
         {
         }
@@ -74,7 +74,7 @@ namespace MongoDB.Driver.Core.WireProtocol
         /// <value>
         /// The documents.
         /// </value>
-        public RawBsonDocument Document
+        public RawBsonArray Document
         {
             get { return _document; }
         }

@@ -29,16 +29,16 @@ namespace MongoDB.Driver.Core.Operations
     /// A change stream cursor.
     /// </summary>
     /// <seealso cref="MongoDB.Driver.IAsyncCursor{TOutput}" />
-    internal sealed class RawChangeStreamCursor : IChangeStreamCursor<RawBsonDocument>
+    internal sealed class RawChangeStreamCursor : IChangeStreamCursor<RawBsonArray>
     {
         // private fields
         private readonly IReadBinding _binding;
-        private readonly IChangeStreamOperation<RawBsonDocument> _changeStreamOperation;
-        private IEnumerable<RawBsonDocument> _current;
-        private IAsyncCursor<RawBsonDocument> _cursor;
+        private readonly IRawChangeStreamOperation _changeStreamOperation;
+        private IEnumerable<RawBsonArray> _current;
+        private IAsyncCursor<RawBsonArray> _cursor;
         private bool _disposed;
         private BsonDocument _documentResumeToken;
-        private readonly IBsonSerializer<RawBsonDocument> _documentSerializer;
+        //private readonly IBsonSerializer<RawBsonArray> _documentSerializer;
         private readonly BsonTimestamp _initialOperationTime;
         private BsonDocument _postBatchResumeToken;
         private readonly BsonDocument _initialResumeAfter;
@@ -48,14 +48,13 @@ namespace MongoDB.Driver.Core.Operations
 
         // public properties
         /// <inheritdoc />
-        public IEnumerable<RawBsonDocument> Current => _current;
+        public IEnumerable<RawBsonArray> Current => _current;
 
         // constructors
         /// <summary>
         /// Initializes a new instance of the <see cref="ChangeStreamCursor{RawBsonDocument}" /> class.
         /// </summary>
         /// <param name="cursor">The cursor.</param>
-        /// <param name="documentSerializer">The document serializer.</param>
         /// <param name="binding">The binding.</param>
         /// <param name="changeStreamOperation">The change stream operation.</param>
         /// <param name="aggregatePostBatchResumeToken">The post batch resume token from an aggregate command.</param>
@@ -65,10 +64,10 @@ namespace MongoDB.Driver.Core.Operations
         /// <param name="initialStartAtOperationTime">The start at operation time value.</param>
         /// <param name="serverVersion">The server version.</param>
         public RawChangeStreamCursor(
-            IAsyncCursor<RawBsonDocument> cursor,
-            IBsonSerializer<RawBsonDocument> documentSerializer,
+            IAsyncCursor<RawBsonArray> cursor,
+            //IBsonSerializer<RawBsonArray> documentSerializer,
             IReadBinding binding,
-            IChangeStreamOperation<RawBsonDocument> changeStreamOperation,
+            IRawChangeStreamOperation changeStreamOperation,
             BsonDocument aggregatePostBatchResumeToken,
             BsonTimestamp initialOperationTime,
             BsonDocument initialStartAfter,
@@ -77,7 +76,7 @@ namespace MongoDB.Driver.Core.Operations
             SemanticVersion serverVersion)
         {
             _cursor = Ensure.IsNotNull(cursor, nameof(cursor));
-            _documentSerializer = Ensure.IsNotNull(documentSerializer, nameof(documentSerializer));
+            //_documentSerializer = Ensure.IsNotNull(documentSerializer, nameof(documentSerializer));
             _binding = Ensure.IsNotNull(binding, nameof(binding));
             _changeStreamOperation = Ensure.IsNotNull(changeStreamOperation, nameof(changeStreamOperation));
             _postBatchResumeToken = aggregatePostBatchResumeToken;
@@ -158,35 +157,39 @@ namespace MongoDB.Driver.Core.Operations
         }
 
         // private methods
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times")]
-        private RawBsonDocument DeserializeDocument(RawBsonDocument rawDocument)
-        {
-            using (var stream = new ByteBufferStream(rawDocument.Slice, ownsBuffer: false))
-            using (var reader = new BsonBinaryReader(stream))
-            {
-                var context = BsonDeserializationContext.CreateRoot(reader);
-                return _documentSerializer.Deserialize(context);
-            }
-        }
+        //[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times")]
+        //private RawBsonArray DeserializeDocument(RawBsonDocument rawDocument)
+        //{
+        //    using (var stream = new ByteBufferStream(rawDocument.Slice, ownsBuffer: false))
+        //    using (var reader = new BsonBinaryReader(stream))
+        //    {
+        //        var context = BsonDeserializationContext.CreateRoot(reader);
+        //        return _documentSerializer.Deserialize(context);
+        //    }
+        //}
 
-        private IEnumerable<RawBsonDocument> DeserializeDocuments(IEnumerable<RawBsonDocument> rawDocuments)
+        private IEnumerable<RawBsonArray> DeserializeDocuments(IEnumerable<RawBsonArray> rawDocuments)
         {
-            var documents = new List<RawBsonDocument>();
+            //var documents = new List<RawBsonDocument>();
             RawBsonDocument lastRawDocument = null;
 
             _postBatchResumeToken = ((ICursorBatchInfo)_cursor).PostBatchResumeToken;
 
             foreach (var rawDocument in rawDocuments)
             {
-                if (!rawDocument.Contains("_id"))
+                //if (!rawDocument.Contains("_id"))
+                //{
+                //    throw new MongoClientException("Cannot provide resume functionality when the resume token is missing.");
+                //}
+
+                //var document = DeserializeDocument(rawDocument);
+                //documents.Add(document);
+                if (rawDocument.Count > 0)
                 {
-                    throw new MongoClientException("Cannot provide resume functionality when the resume token is missing.");
+                    yield return rawDocument;
+
+                    lastRawDocument = (RawBsonDocument)rawDocument[rawDocument.Count - 1];
                 }
-
-                var document = DeserializeDocument(rawDocument);
-                documents.Add(document);
-
-                lastRawDocument = rawDocument;
             }
 
             if (lastRawDocument != null)
@@ -194,7 +197,7 @@ namespace MongoDB.Driver.Core.Operations
                 _documentResumeToken = lastRawDocument["_id"].DeepClone().AsBsonDocument;
             }
 
-            return documents;
+            //return documents;
         }
 
         private ResumeValues GetResumeValues()
@@ -231,18 +234,18 @@ namespace MongoDB.Driver.Core.Operations
         {
             if (hasMore)
             {
-                _current = _cursor.Current;
-                //try
-                //{
-                //    _current = DeserializeDocuments(_cursor.Current);
-                //}
-                //finally
-                //{
-                //    foreach (var rawDocument in _cursor.Current)
-                //    {
-                //        rawDocument.Dispose();
-                //    }
-                //}
+                //_current = _cursor.Current;
+                try
+                {
+                    _current = DeserializeDocuments(_cursor.Current);
+                }
+                finally
+                {
+                    //foreach (var rawDocument in _cursor.Current)
+                    //{
+                    //    rawDocument.Dispose();
+                    //}
+                }
             }
             else
             {
@@ -258,13 +261,13 @@ namespace MongoDB.Driver.Core.Operations
             _changeStreamOperation.StartAtOperationTime = resumeValues.StartAtOperationTime;
         }
 
-        private IAsyncCursor<RawBsonDocument> Resume(CancellationToken cancellationToken)
+        private IAsyncCursor<RawBsonArray> Resume(CancellationToken cancellationToken)
         {
             ReconfigureOperationResumeValues();
             return _changeStreamOperation.Resume(_binding, cancellationToken);
         }
 
-        private async Task<IAsyncCursor<RawBsonDocument>> ResumeAsync(CancellationToken cancellationToken)
+        private async Task<IAsyncCursor<RawBsonArray>> ResumeAsync(CancellationToken cancellationToken)
         {
             ReconfigureOperationResumeValues();
             return await _changeStreamOperation.ResumeAsync(_binding, cancellationToken).ConfigureAwait(false);

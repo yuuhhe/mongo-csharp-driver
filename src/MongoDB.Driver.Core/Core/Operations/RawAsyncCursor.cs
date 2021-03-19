@@ -35,7 +35,7 @@ namespace MongoDB.Driver.Core.Operations
     /// <summary>
     /// Represents an async cursor.
     /// </summary>
-    public class RawAsyncCursor : IAsyncCursor<RawBsonDocument>, ICursorBatchInfo
+    public class RawAsyncCursor : IAsyncCursor<RawBsonArray>, ICursorBatchInfo
     {
         #region static
         // private static fields
@@ -51,11 +51,11 @@ namespace MongoDB.Driver.Core.Operations
         private bool _closed;
         //private int _count;
         //private IReadOnlyList<RawBsonDocument> _currentBatch;
-        private RawBsonDocument _currentBatch;
+        private RawBsonArray _currentBatch;
         private long _cursorId;
         private bool _disposed;
         //private IReadOnlyList<RawBsonDocument> _firstBatch;
-        private RawBsonDocument _firstBatch;
+        private RawBsonArray _firstBatch;
         //private readonly int? _limit;
         private readonly TimeSpan? _maxTime;
         private readonly MessageEncoderSettings _messageEncoderSettings;
@@ -82,7 +82,7 @@ namespace MongoDB.Driver.Core.Operations
             IChannelSource channelSource,
             CollectionNamespace collectionNamespace,
             BsonDocument query,
-            RawBsonDocument firstBatch,
+            RawBsonArray firstBatch,
             long cursorId,
             BsonDocument postBatchResumeToken,
             int? batchSize,
@@ -119,7 +119,7 @@ namespace MongoDB.Driver.Core.Operations
 
         // properties
         /// <inheritdoc/>
-        public IEnumerable<RawBsonDocument> Current
+        public IEnumerable<RawBsonArray> Current
         {
             get
             {
@@ -128,7 +128,7 @@ namespace MongoDB.Driver.Core.Operations
             }
         }
 
-        private IEnumerable<RawBsonDocument> GetCurrent()
+        private IEnumerable<RawBsonArray> GetCurrent()
         {
             yield return _currentBatch;
         }
@@ -205,7 +205,7 @@ namespace MongoDB.Driver.Core.Operations
             var cursorDocument = result["cursor"].AsBsonDocument;
             var cursorId = cursorDocument["id"].ToInt64();
             //var batch = (RawBsonDocument)cursorDocument["nextBatch"];
-            var batch = (RawBsonDocument)cursorDocument;
+            var batch = (RawBsonArray)cursorDocument["nextBatch"];
             var postBatchResumeToken = (BsonDocument)cursorDocument.GetValue("postBatchResumeToken", null);
 
             //using (batch)

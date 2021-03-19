@@ -34,7 +34,7 @@ namespace MongoDB.Driver.Core.Operations
     /// <summary>
     /// Represents an aggregate operation.
     /// </summary>
-    public class RawAggregateOperation : IReadOperation<IAsyncCursor<RawBsonDocument>>, IExecutableInRetryableReadContext<IAsyncCursor<RawBsonDocument>>
+    public class RawAggregateOperation : IReadOperation<IAsyncCursor<RawBsonArray>>, IExecutableInRetryableReadContext<IAsyncCursor<RawBsonArray>>
     {
         // fields
         private bool? _allowDiskUse;
@@ -261,7 +261,7 @@ namespace MongoDB.Driver.Core.Operations
 
         // methods
         /// <inheritdoc/>
-        public IAsyncCursor<RawBsonDocument> Execute(IReadBinding binding, CancellationToken cancellationToken)
+        public IAsyncCursor<RawBsonArray> Execute(IReadBinding binding, CancellationToken cancellationToken)
         {
             Ensure.IsNotNull(binding, nameof(binding));
 
@@ -272,7 +272,7 @@ namespace MongoDB.Driver.Core.Operations
         }
 
         /// <inheritdoc/>
-        public IAsyncCursor<RawBsonDocument> Execute(RetryableReadContext context, CancellationToken cancellationToken)
+        public IAsyncCursor<RawBsonArray> Execute(RetryableReadContext context, CancellationToken cancellationToken)
         {
             Ensure.IsNotNull(context, nameof(context));
             EnsureIsReadOnlyPipeline();
@@ -286,7 +286,7 @@ namespace MongoDB.Driver.Core.Operations
         }
 
         /// <inheritdoc/>
-        public async Task<IAsyncCursor<RawBsonDocument>> ExecuteAsync(IReadBinding binding, CancellationToken cancellationToken)
+        public async Task<IAsyncCursor<RawBsonArray>> ExecuteAsync(IReadBinding binding, CancellationToken cancellationToken)
         {
             Ensure.IsNotNull(binding, nameof(binding));
 
@@ -297,7 +297,7 @@ namespace MongoDB.Driver.Core.Operations
         }
 
         /// <inheritdoc/>
-        public async Task<IAsyncCursor<RawBsonDocument>> ExecuteAsync(RetryableReadContext context, CancellationToken cancellationToken)
+        public async Task<IAsyncCursor<RawBsonArray>> ExecuteAsync(RetryableReadContext context, CancellationToken cancellationToken)
         {
             Ensure.IsNotNull(context, nameof(context));
             EnsureIsReadOnlyPipeline();
@@ -371,14 +371,15 @@ namespace MongoDB.Driver.Core.Operations
         {
             var cursorDocument = (RawBsonDocument)result["cursor"];
             var cursorId = cursorDocument["id"].AsInt64;
+            var batch = (RawBsonArray)cursorDocument["firstBatch"];
             var ns = cursorDocument["ns"].AsString;
             var postBatchResumeToken = cursorDocument["postBatchResumeToken"].AsBsonDocument;
 
-            AggregateResult aggregateResult = new AggregateResult {
+            RawAggregateResult aggregateResult = new RawAggregateResult {
                 CursorId = cursorId,
                 CollectionNamespace = CollectionNamespace.FromFullName(ns),
                 PostBatchResumeToken = postBatchResumeToken,
-                Result = cursorDocument
+                Result = batch
             };
             return CreateCursorFromCursorResult(channelSource, command, aggregateResult);
 
@@ -392,7 +393,7 @@ namespace MongoDB.Driver.Core.Operations
             //}
         }
 
-        private RawAsyncCursor CreateCursorFromCursorResult(IChannelSourceHandle channelSource, BsonDocument command, AggregateResult result)
+        private RawAsyncCursor CreateCursorFromCursorResult(IChannelSourceHandle channelSource, BsonDocument command, RawAggregateResult result)
         {
             var getMoreChannelSource = new ServerChannelSource(channelSource.Server, channelSource.Session.Fork());
             return new RawAsyncCursor(
@@ -432,12 +433,12 @@ namespace MongoDB.Driver.Core.Operations
             }
         }
 
-        private class AggregateResult
+        private class RawAggregateResult
         {
             public long? CursorId;
             public CollectionNamespace CollectionNamespace;
             public BsonDocument PostBatchResumeToken;
-            public RawBsonDocument Result;
+            public RawBsonArray Result;
         }
 
         /*

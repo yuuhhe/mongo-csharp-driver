@@ -133,11 +133,23 @@ namespace MongoDB.Driver
             var operation = new RawChangeStreamOperation(
                 collection.CollectionNamespace,
                 renderedPipeline.Documents,
+                //documentSerializer,
+                null,
                 messageEncoderSettings)
             {
                 RetryRequested = retryRequested
             };
-            SetOperationOptions(operation, options, readConcern);
+
+            options = options ?? new ChangeStreamOptions();
+
+            operation.BatchSize = options.BatchSize;
+            operation.Collation = options.Collation;
+            operation.FullDocument = options.FullDocument;
+            operation.MaxAwaitTime = options.MaxAwaitTime;
+            operation.ReadConcern = readConcern;
+            operation.ResumeAfter = options.ResumeAfter;
+            operation.StartAfter = options.StartAfter;
+            operation.StartAtOperationTime = options.StartAtOperationTime;
 
             return operation;
         }
