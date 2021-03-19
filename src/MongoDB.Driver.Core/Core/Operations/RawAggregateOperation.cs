@@ -355,42 +355,28 @@ namespace MongoDB.Driver.Core.Operations
             return command;
         }
 
-        private ReadCommandOperation<RawBsonDocument> CreateOperation(RetryableReadContext context)
+        private ReadCommandOperation<RawAggregateResult> CreateOperation(RetryableReadContext context)
         {
             var databaseNamespace = _collectionNamespace == null ? _databaseNamespace : _collectionNamespace.DatabaseNamespace;
             var command = CreateCommand(context.Channel.ConnectionDescription, context.Binding.Session);
-            //var serializer = new AggregateResultDeserializer();
-            //return new ReadCommandOperation<AggregateResult>(databaseNamespace, command, serializer, MessageEncoderSettings)
-            return new ReadCommandOperation<RawBsonDocument>(databaseNamespace, command, RawBsonDocumentSerializer.Instance, MessageEncoderSettings)
+            var serializer = new RawAggregateResultDeserializer(_resultSerializer);
+            return new ReadCommandOperation<RawAggregateResult>(databaseNamespace, command, serializer, MessageEncoderSettings)
             {
                 RetryRequested = _retryRequested // might be overridden by retryable read context
             };
         }
 
-        private RawAsyncCursor CreateCursor(IChannelSourceHandle channelSource, IChannelHandle channel, BsonDocument command, RawBsonDocument result)
+        private RawAsyncCursor CreateCursor(IChannelSourceHandle channelSource, IChannelHandle channel, BsonDocument command, RawAggregateResult result)
         {
-            var cursorDocument = (RawBsonDocument)result["cursor"];
-            var cursorId = cursorDocument["id"].AsInt64;
-            var batch = (RawBsonArray)cursorDocument["firstBatch"];
-            var ns = cursorDocument["ns"].AsString;
-            var postBatchResumeToken = cursorDocument["postBatchResumeToken"].AsBsonDocument;
-
-            RawAggregateResult aggregateResult = new RawAggregateResult {
-                CursorId = cursorId,
-                CollectionNamespace = CollectionNamespace.FromFullName(ns),
-                PostBatchResumeToken = postBatchResumeToken,
-                Result = batch
-            };
-            return CreateCursorFromCursorResult(channelSource, command, aggregateResult);
-
-            //if (result.CursorId.HasValue)
-            //{
-            //    return CreateCursorFromCursorResult(channelSource, command, result);
-            //}
-            //else
-            //{
-            //    return CreateCursorFromInlineResult(command, result);
-            //}
+            if (result.CursorId.HasValue)
+            {
+                return CreateCursorFromCursorResult(channelSource, command, result);
+            }
+            else
+            {
+                //return CreateCursorFromInlineResult(command, result);
+                throw new NotSupportedException();
+            }
         }
 
         private RawAsyncCursor CreateCursorFromCursorResult(IChannelSourceHandle channelSource, BsonDocument command, RawAggregateResult result)
@@ -441,20 +427,19 @@ namespace MongoDB.Driver.Core.Operations
             public RawBsonArray Result;
         }
 
-        /*
-        private class AggregateResultDeserializer : SerializerBase<AggregateResult>
+        private class RawAggregateResultDeserializer : SerializerBase<RawAggregateResult>
         {
             private readonly IBsonSerializer<RawBsonDocument> _resultSerializer;
 
-            public AggregateResultDeserializer()
+            public RawAggregateResultDeserializer(IBsonSerializer<RawBsonDocument> resultSerializer)
             {
-                _resultSerializer = RawBsonDocumentSerializer.Instance;
+                _resultSerializer = resultSerializer;
             }
 
-            public override AggregateResult Deserialize(BsonDeserializationContext context, BsonDeserializationArgs args)
+            public override RawAggregateResult Deserialize(BsonDeserializationContext context, BsonDeserializationArgs args)
             {
                 var reader = context.Reader;
-                AggregateResult result = null;
+                RawAggregateResult result = null;
                 reader.ReadStartDocument();
                 while (reader.ReadBsonType() != 0)
                 {
@@ -466,7 +451,7 @@ namespace MongoDB.Driver.Core.Operations
                     }
                     //else if (elementName == "result")
                     //{
-                    //    var arraySerializer = new ArraySerializer(_resultSerializer);
+                    //    var arraySerializer = new ArraySerializer<TResult>(_resultSerializer);
                     //    result = new AggregateResult();
                     //    result.Results = arraySerializer.Deserialize(context);
                     //}
@@ -480,7 +465,7 @@ namespace MongoDB.Driver.Core.Operations
             }
         }
 
-        private class CursorDeserializer : SerializerBase<AggregateResult>
+        private class CursorDeserializer : SerializerBase<RawAggregateResult>
         {
             private readonly IBsonSerializer<RawBsonDocument> _resultSerializer;
 
@@ -489,10 +474,10 @@ namespace MongoDB.Driver.Core.Operations
                 _resultSerializer = resultSerializer;
             }
 
-            public override AggregateResult Deserialize(BsonDeserializationContext context, BsonDeserializationArgs args)
+            public override RawAggregateResult Deserialize(BsonDeserializationContext context, BsonDeserializationArgs args)
             {
                 var reader = context.Reader;
-                var result = new AggregateResult();
+                var result = new RawAggregateResult();
                 reader.ReadStartDocument();
                 while (reader.ReadBsonType() != 0)
                 {
@@ -511,10 +496,9 @@ namespace MongoDB.Driver.Core.Operations
                         case "firstBatch":
                             //var arraySerializer = new ArraySerializer<RawBsonDocument>(_resultSerializer);
                             //result.Results = arraySerializer.Deserialize(context);
-                            result.Result = _resultSerializer.Deserialize(context);
-                            //var slice = reader.ReadRawBsonArray();
-                            //var nestedArray = new RawBsonArray(slice);
-                            //result.Results = nestedArray;
+                            var slice = reader.ReadRawBsonArray();
+                            var nestedArray = new RawBsonArray(slice);
+                            result.Result = nestedArray;
                             break;
 
                         case "postBatchResumeToken":
@@ -530,7 +514,6 @@ namespace MongoDB.Driver.Core.Operations
                 return result;
             }
         }
-        */
 
     }
 }

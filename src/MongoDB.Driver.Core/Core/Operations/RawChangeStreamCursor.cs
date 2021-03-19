@@ -190,6 +190,10 @@ namespace MongoDB.Driver.Core.Operations
 
                     lastRawDocument = (RawBsonDocument)rawDocument[rawDocument.Count - 1];
                 }
+                else
+                {
+                    rawDocument.Dispose();
+                }
             }
 
             if (lastRawDocument != null)

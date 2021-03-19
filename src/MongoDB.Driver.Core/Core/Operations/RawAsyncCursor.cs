@@ -204,7 +204,6 @@ namespace MongoDB.Driver.Core.Operations
         {
             var cursorDocument = result["cursor"].AsBsonDocument;
             var cursorId = cursorDocument["id"].ToInt64();
-            //var batch = (RawBsonDocument)cursorDocument["nextBatch"];
             var batch = (RawBsonArray)cursorDocument["nextBatch"];
             var postBatchResumeToken = (BsonDocument)cursorDocument.GetValue("postBatchResumeToken", null);
 
@@ -243,10 +242,10 @@ namespace MongoDB.Driver.Core.Operations
         private RawCursorBatch ExecuteGetMoreCommand(IChannelHandle channel, CancellationToken cancellationToken)
         {
             var command = CreateGetMoreCommand();
-            RawBsonDocument result;
+            BsonDocument result;
             try
             {
-                result = channel.Command<RawBsonDocument>(
+                result = channel.Command<BsonDocument>(
                     _channelSource.Session,
                     null, // readPreference
                     _collectionNamespace.DatabaseNamespace,
@@ -256,7 +255,7 @@ namespace MongoDB.Driver.Core.Operations
                     null, // additionalOptions
                     null, // postWriteAction
                     CommandResponseHandling.Return,
-                    RawBsonDocumentSerializer.Instance,
+                    __getMoreCommandResultSerializer,
                     _messageEncoderSettings,
                     cancellationToken);
             }
@@ -635,7 +634,6 @@ namespace MongoDB.Driver.Core.Operations
             if (_firstBatch != null)
             {
                 _currentBatch = _firstBatch;
-                //_currentBatch = (RawBsonDocument)_firstBatch["cursor"];
                 _firstBatch = null;
                 hasMore = true;
                 return true;
