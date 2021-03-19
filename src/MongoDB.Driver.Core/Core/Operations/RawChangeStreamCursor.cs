@@ -38,7 +38,7 @@ namespace MongoDB.Driver.Core.Operations
         private IAsyncCursor<RawBsonArray> _cursor;
         private bool _disposed;
         private BsonDocument _documentResumeToken;
-        //private readonly IBsonSerializer<RawBsonArray> _documentSerializer;
+        private readonly IBsonSerializer<RawBsonArray> _documentSerializer;
         private readonly BsonTimestamp _initialOperationTime;
         private BsonDocument _postBatchResumeToken;
         private readonly BsonDocument _initialResumeAfter;
@@ -55,6 +55,7 @@ namespace MongoDB.Driver.Core.Operations
         /// Initializes a new instance of the <see cref="ChangeStreamCursor{RawBsonDocument}" /> class.
         /// </summary>
         /// <param name="cursor">The cursor.</param>
+        /// <param name="documentSerializer">The document serializer.</param>
         /// <param name="binding">The binding.</param>
         /// <param name="changeStreamOperation">The change stream operation.</param>
         /// <param name="aggregatePostBatchResumeToken">The post batch resume token from an aggregate command.</param>
@@ -65,7 +66,7 @@ namespace MongoDB.Driver.Core.Operations
         /// <param name="serverVersion">The server version.</param>
         public RawChangeStreamCursor(
             IAsyncCursor<RawBsonArray> cursor,
-            //IBsonSerializer<RawBsonArray> documentSerializer,
+            IBsonSerializer<RawBsonArray> documentSerializer,
             IReadBinding binding,
             IRawChangeStreamOperation changeStreamOperation,
             BsonDocument aggregatePostBatchResumeToken,
@@ -76,7 +77,7 @@ namespace MongoDB.Driver.Core.Operations
             SemanticVersion serverVersion)
         {
             _cursor = Ensure.IsNotNull(cursor, nameof(cursor));
-            //_documentSerializer = Ensure.IsNotNull(documentSerializer, nameof(documentSerializer));
+            _documentSerializer = Ensure.IsNotNull(documentSerializer, nameof(documentSerializer));
             _binding = Ensure.IsNotNull(binding, nameof(binding));
             _changeStreamOperation = Ensure.IsNotNull(changeStreamOperation, nameof(changeStreamOperation));
             _postBatchResumeToken = aggregatePostBatchResumeToken;

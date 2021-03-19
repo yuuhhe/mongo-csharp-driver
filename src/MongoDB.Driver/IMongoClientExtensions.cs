@@ -107,5 +107,28 @@ namespace MongoDB.Driver
             var emptyPipeline = new EmptyPipelineDefinition<ChangeStreamDocument<BsonDocument>>();
             return client.WatchAsync(session, emptyPipeline, options, cancellationToken);
         }
+
+        /// <inheritdoc/>
+        public static IChangeStreamCursor<RawBsonArray> FastWatch(
+            this IMongoClient client,
+            PipelineDefinition<ChangeStreamDocument<BsonDocument>, RawBsonArray> pipeline = null,
+            ChangeStreamOptions options = null,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            Ensure.IsNotNull(client, nameof(client));
+
+            if (pipeline == null)
+                pipeline = new BsonDocument[] { };
+
+            if (client is MongoClient mongoClient)
+            {
+                return mongoClient.FastWatch(pipeline, options, cancellationToken);
+            }
+            else
+            {
+                throw new MongoException("Parameter client must be MongoClient type");
+            }
+        }
+
     }
 }

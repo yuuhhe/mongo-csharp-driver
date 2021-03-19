@@ -150,8 +150,7 @@ namespace MongoDB.Driver
             var operation = new RawChangeStreamOperation(
                 collection.CollectionNamespace,
                 renderedPipeline.Documents,
-                //documentSerializer,
-                null,
+                renderedPipeline.OutputSerializer,
                 messageEncoderSettings)
             {
                 RetryRequested = retryRequested
@@ -173,8 +172,28 @@ namespace MongoDB.Driver
             var operation = new RawChangeStreamOperation(
                 database.DatabaseNamespace,
                 renderedPipeline.Documents,
-                //renderedPipeline.OutputSerializer,
-                null,
+                renderedPipeline.OutputSerializer,
+                messageEncoderSettings)
+            {
+                RetryRequested = retryRequested
+            };
+            SetOperationOptions(operation, options, readConcern);
+
+            return operation;
+        }
+
+        public static RawChangeStreamOperation CreateRawChangeStreamOperation(
+            PipelineDefinition<ChangeStreamDocument<BsonDocument>, RawBsonArray> pipeline,
+            ChangeStreamOptions options,
+            ReadConcern readConcern,
+            MessageEncoderSettings messageEncoderSettings,
+            bool retryRequested)
+        {
+            var renderedPipeline = RenderPipeline(pipeline, BsonDocumentSerializer.Instance);
+
+            var operation = new RawChangeStreamOperation(
+                renderedPipeline.Documents,
+                renderedPipeline.OutputSerializer,
                 messageEncoderSettings)
             {
                 RetryRequested = retryRequested

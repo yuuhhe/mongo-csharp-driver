@@ -86,7 +86,7 @@ namespace MongoDB.Driver.Core.Operations
             long cursorId,
             BsonDocument postBatchResumeToken,
             int? batchSize,
-            IBsonSerializer<RawBsonDocument> serializer,
+            IBsonSerializer<RawBsonArray> serializer,
             MessageEncoderSettings messageEncoderSettings,
             TimeSpan? maxTime)
         {

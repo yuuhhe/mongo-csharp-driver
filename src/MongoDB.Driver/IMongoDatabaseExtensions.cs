@@ -141,12 +141,14 @@ namespace MongoDB.Driver
         /// <inheritdoc />
         public static IChangeStreamCursor<RawBsonArray> FastWatch(
             this IMongoDatabase database,
-            PipelineDefinition<ChangeStreamDocument<BsonDocument>, RawBsonArray> pipeline,
+            PipelineDefinition<ChangeStreamDocument<BsonDocument>, RawBsonArray> pipeline = null,
             ChangeStreamOptions options = null,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             Ensure.IsNotNull(database, nameof(database));
-            Ensure.IsNotNull(pipeline, nameof(pipeline));
+
+            if (pipeline == null)
+                pipeline = new BsonDocument[] { };
 
             if (database is MongoDatabaseImpl mongoDatabase)
             {
@@ -154,7 +156,7 @@ namespace MongoDB.Driver
             }
             else
             {
-                throw new MongoException("Parameter collection must be MongoCollectionImpl type");
+                throw new MongoException("Parameter database must be MongoDatabaseImpl type");
             }
         }
 

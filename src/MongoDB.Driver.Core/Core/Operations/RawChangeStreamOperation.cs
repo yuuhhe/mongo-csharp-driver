@@ -90,7 +90,7 @@ namespace MongoDB.Driver.Core.Operations
         private readonly MessageEncoderSettings _messageEncoderSettings;
         private readonly IReadOnlyList<BsonDocument> _pipeline;
         private ReadConcern _readConcern = ReadConcern.Default;
-        //private readonly IBsonSerializer<RawBsonArray> _resultSerializer;
+        private readonly IBsonSerializer<RawBsonArray> _resultSerializer;
         private BsonDocument _resumeAfter;
         private bool _retryRequested;
         private BsonDocument _startAfter;
@@ -109,7 +109,7 @@ namespace MongoDB.Driver.Core.Operations
             MessageEncoderSettings messageEncoderSettings)
         {
             _pipeline = Ensure.IsNotNull(pipeline, nameof(pipeline)).ToList();
-            //_resultSerializer = Ensure.IsNotNull(resultSerializer, nameof(resultSerializer));
+            _resultSerializer = Ensure.IsNotNull(resultSerializer, nameof(resultSerializer));
             _messageEncoderSettings = Ensure.IsNotNull(messageEncoderSettings, nameof(messageEncoderSettings));
         }
 
@@ -240,13 +240,13 @@ namespace MongoDB.Driver.Core.Operations
             set { _readConcern = Ensure.IsNotNull(value, nameof(value)); }
         }
 
-        ///// <summary>
-        ///// Gets the result serializer.
-        ///// </summary>
-        ///// <value>
-        ///// The result serializer.
-        ///// </value>
-        //public IBsonSerializer<RawBsonArray> ResultSerializer => _resultSerializer;
+        /// <summary>
+        /// Gets the result serializer.
+        /// </summary>
+        /// <value>
+        /// The result serializer.
+        /// </value>
+        public IBsonSerializer<RawBsonArray> ResultSerializer => _resultSerializer;
 
         /// <inheritdoc />
         public BsonDocument ResumeAfter
@@ -303,7 +303,7 @@ namespace MongoDB.Driver.Core.Operations
 
                 return new RawChangeStreamCursor(
                     cursor,
-                    //_resultSerializer,
+                    _resultSerializer,
                     bindingHandle.Fork(),
                     this,
                     postBatchResumeToken,
@@ -338,7 +338,7 @@ namespace MongoDB.Driver.Core.Operations
 
                 return new RawChangeStreamCursor(
                     cursor,
-                    //_resultSerializer,
+                    _resultSerializer,
                     bindingHandle.Fork(),
                     this,
                     postBatchResumeToken,
@@ -377,7 +377,7 @@ namespace MongoDB.Driver.Core.Operations
             RawAggregateOperation operation;
             if (_collectionNamespace != null)
             {
-                operation = new RawAggregateOperation(_collectionNamespace, combinedPipeline, RawBsonDocumentSerializer.Instance, _messageEncoderSettings)
+                operation = new RawAggregateOperation(_collectionNamespace, combinedPipeline, _resultSerializer, _messageEncoderSettings)
                 {
                     RetryRequested = _retryRequested // might be overridden by retryable read context
                 };
@@ -385,7 +385,7 @@ namespace MongoDB.Driver.Core.Operations
             else
             {
                 var databaseNamespace = _databaseNamespace ?? DatabaseNamespace.Admin;
-                operation = new RawAggregateOperation(databaseNamespace, combinedPipeline, RawBsonDocumentSerializer.Instance, _messageEncoderSettings)
+                operation = new RawAggregateOperation(databaseNamespace, combinedPipeline, _resultSerializer, _messageEncoderSettings)
                 {
                     RetryRequested = _retryRequested // might be overridden by retryable read context
                 };

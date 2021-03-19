@@ -49,7 +49,7 @@ namespace MongoDB.Driver.Core.Operations
         private readonly MessageEncoderSettings _messageEncoderSettings;
         private readonly IReadOnlyList<BsonDocument> _pipeline;
         private ReadConcern _readConcern = ReadConcern.Default;
-        private readonly IBsonSerializer<RawBsonDocument> _resultSerializer;
+        private readonly IBsonSerializer<RawBsonArray> _resultSerializer;
         private bool _retryRequested;
         private bool? _useCursor;
 
@@ -61,7 +61,7 @@ namespace MongoDB.Driver.Core.Operations
         /// <param name="pipeline">The pipeline.</param>
         /// <param name="resultSerializer">The result value serializer.</param>
         /// <param name="messageEncoderSettings">The message encoder settings.</param>
-        public RawAggregateOperation(DatabaseNamespace databaseNamespace, IEnumerable<BsonDocument> pipeline, IBsonSerializer<RawBsonDocument> resultSerializer, MessageEncoderSettings messageEncoderSettings)
+        public RawAggregateOperation(DatabaseNamespace databaseNamespace, IEnumerable<BsonDocument> pipeline, IBsonSerializer<RawBsonArray> resultSerializer, MessageEncoderSettings messageEncoderSettings)
             : this(pipeline, resultSerializer, messageEncoderSettings)
         {
             _databaseNamespace = Ensure.IsNotNull(databaseNamespace, nameof(databaseNamespace));
@@ -74,13 +74,13 @@ namespace MongoDB.Driver.Core.Operations
         /// <param name="pipeline">The pipeline.</param>
         /// <param name="resultSerializer">The result value serializer.</param>
         /// <param name="messageEncoderSettings">The message encoder settings.</param>
-        public RawAggregateOperation(CollectionNamespace collectionNamespace, IEnumerable<BsonDocument> pipeline, IBsonSerializer<RawBsonDocument> resultSerializer, MessageEncoderSettings messageEncoderSettings)
+        public RawAggregateOperation(CollectionNamespace collectionNamespace, IEnumerable<BsonDocument> pipeline, IBsonSerializer<RawBsonArray> resultSerializer, MessageEncoderSettings messageEncoderSettings)
             : this(pipeline, resultSerializer, messageEncoderSettings)
         {
             _collectionNamespace = Ensure.IsNotNull(collectionNamespace, nameof(collectionNamespace));
         }
 
-        private RawAggregateOperation(IEnumerable<BsonDocument> pipeline, IBsonSerializer<RawBsonDocument> resultSerializer, MessageEncoderSettings messageEncoderSettings)
+        private RawAggregateOperation(IEnumerable<BsonDocument> pipeline, IBsonSerializer<RawBsonArray> resultSerializer, MessageEncoderSettings messageEncoderSettings)
         {
             _pipeline = Ensure.IsNotNull(pipeline, nameof(pipeline)).ToList();
             _resultSerializer = Ensure.IsNotNull(resultSerializer, nameof(resultSerializer));
@@ -231,7 +231,7 @@ namespace MongoDB.Driver.Core.Operations
         /// <value>
         /// The result value serializer.
         /// </value>
-        public IBsonSerializer<RawBsonDocument> ResultSerializer
+        public IBsonSerializer<RawBsonArray> ResultSerializer
         {
             get { return _resultSerializer; }
         }
@@ -429,9 +429,9 @@ namespace MongoDB.Driver.Core.Operations
 
         private class RawAggregateResultDeserializer : SerializerBase<RawAggregateResult>
         {
-            private readonly IBsonSerializer<RawBsonDocument> _resultSerializer;
+            private readonly IBsonSerializer<RawBsonArray> _resultSerializer;
 
-            public RawAggregateResultDeserializer(IBsonSerializer<RawBsonDocument> resultSerializer)
+            public RawAggregateResultDeserializer(IBsonSerializer<RawBsonArray> resultSerializer)
             {
                 _resultSerializer = resultSerializer;
             }
@@ -467,9 +467,9 @@ namespace MongoDB.Driver.Core.Operations
 
         private class CursorDeserializer : SerializerBase<RawAggregateResult>
         {
-            private readonly IBsonSerializer<RawBsonDocument> _resultSerializer;
+            private readonly IBsonSerializer<RawBsonArray> _resultSerializer;
 
-            public CursorDeserializer(IBsonSerializer<RawBsonDocument> resultSerializer)
+            public CursorDeserializer(IBsonSerializer<RawBsonArray> resultSerializer)
             {
                 _resultSerializer = resultSerializer;
             }
@@ -496,9 +496,10 @@ namespace MongoDB.Driver.Core.Operations
                         case "firstBatch":
                             //var arraySerializer = new ArraySerializer<RawBsonDocument>(_resultSerializer);
                             //result.Results = arraySerializer.Deserialize(context);
-                            var slice = reader.ReadRawBsonArray();
-                            var nestedArray = new RawBsonArray(slice);
-                            result.Result = nestedArray;
+                            result.Result = _resultSerializer.Deserialize(context);
+                            //var slice = reader.ReadRawBsonArray();
+                            //var nestedArray = new RawBsonArray(slice);
+                            //result.Result = nestedArray;
                             break;
 
                         case "postBatchResumeToken":

@@ -2336,12 +2336,14 @@ namespace MongoDB.Driver
         /// <inheritdoc />
         public static IChangeStreamCursor<RawBsonArray> FastWatch<TDocument>(
             this IMongoCollection<TDocument> collection,
-            PipelineDefinition<ChangeStreamDocument<TDocument>, RawBsonArray> pipeline,
+            PipelineDefinition<ChangeStreamDocument<TDocument>, RawBsonArray> pipeline = null,
             ChangeStreamOptions options = null,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             Ensure.IsNotNull(collection, nameof(collection));
-            Ensure.IsNotNull(pipeline, nameof(pipeline));
+
+            if (pipeline == null)
+                pipeline = new BsonDocument[] { };
 
             if (collection is MongoCollectionImpl<TDocument> mongoCollection)
             {
