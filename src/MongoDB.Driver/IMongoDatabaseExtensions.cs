@@ -137,5 +137,28 @@ namespace MongoDB.Driver
             var emptyPipeline = new EmptyPipelineDefinition<ChangeStreamDocument<BsonDocument>>();
             return database.WatchAsync(session, emptyPipeline, options, cancellationToken);
         }
+
+        /// <inheritdoc />
+        public static IChangeStreamCursor<RawBsonArray> FastWatch(
+            this IMongoDatabase database,
+            PipelineDefinition<ChangeStreamDocument<BsonDocument>, RawBsonArray> pipeline = null,
+            ChangeStreamOptions options = null,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            Ensure.IsNotNull(database, nameof(database));
+
+            if (pipeline == null)
+                pipeline = new BsonDocument[] { };
+
+            if (database is MongoDatabaseImpl mongoDatabase)
+            {
+                return mongoDatabase.FastWatch(pipeline, options, cancellationToken);
+            }
+            else
+            {
+                throw new MongoException("Parameter database must be MongoDatabaseImpl type");
+            }
+        }
+
     }
 }

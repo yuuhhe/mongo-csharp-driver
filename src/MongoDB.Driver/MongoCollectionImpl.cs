@@ -618,6 +618,26 @@ namespace MongoDB.Driver
             return ExecuteReadOperation(session, operation, cancellationToken);
         }
 
+        public IChangeStreamCursor<RawBsonArray> FastWatch(
+            PipelineDefinition<ChangeStreamDocument<TDocument>, RawBsonArray> pipeline,
+            ChangeStreamOptions options = null,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return UsingImplicitSession(session => FastWatch(session, pipeline, options, cancellationToken), cancellationToken);
+        }
+
+        public IChangeStreamCursor<RawBsonArray> FastWatch(
+            IClientSessionHandle session,
+            PipelineDefinition<ChangeStreamDocument<TDocument>, RawBsonArray> pipeline,
+            ChangeStreamOptions options = null,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            Ensure.IsNotNull(session, nameof(session));
+            Ensure.IsNotNull(pipeline, nameof(pipeline));
+            var operation = CreateRawChangeStreamOperation(pipeline, options);
+            return ExecuteReadOperation(session, operation, cancellationToken);
+        }
+
         public override Task<IChangeStreamCursor<TResult>> WatchAsync<TResult>(
             PipelineDefinition<ChangeStreamDocument<TDocument>, TResult> pipeline,
             ChangeStreamOptions options = null,
@@ -894,6 +914,19 @@ namespace MongoDB.Driver
             ChangeStreamOptions options)
         {
             return ChangeStreamHelper.CreateChangeStreamOperation(
+                this,
+                pipeline,
+                _documentSerializer,
+                options,
+                _settings.ReadConcern, messageEncoderSettings: _messageEncoderSettings,
+                _database.Client.Settings.RetryReads);
+        }
+
+        private RawChangeStreamOperation CreateRawChangeStreamOperation(
+            PipelineDefinition<ChangeStreamDocument<TDocument>, RawBsonArray> pipeline,
+            ChangeStreamOptions options)
+        {
+            return ChangeStreamHelper.CreateRawChangeStreamOperation(
                 this,
                 pipeline,
                 _documentSerializer,
@@ -1297,7 +1330,7 @@ namespace MongoDB.Driver
             }
         }
 
-        private TResult UsingImplicitSession<TResult>(Func<IClientSessionHandle, TResult> func, CancellationToken cancellationToken = default(CancellationToken))
+        internal TResult UsingImplicitSession<TResult>(Func<IClientSessionHandle, TResult> func, CancellationToken cancellationToken = default(CancellationToken))
         {
             using (var session = _operationExecutor.StartImplicitSession(cancellationToken))
             {

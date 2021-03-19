@@ -118,5 +118,90 @@ namespace MongoDB.Driver
             operation.StartAfter = options.StartAfter;
             operation.StartAtOperationTime = options.StartAtOperationTime;
         }
+
+        private static void SetOperationOptions(
+            RawChangeStreamOperation operation,
+            ChangeStreamOptions options,
+            ReadConcern readConcern)
+        {
+            options = options ?? new ChangeStreamOptions();
+
+            operation.BatchSize = options.BatchSize;
+            operation.Collation = options.Collation;
+            operation.FullDocument = options.FullDocument;
+            operation.MaxAwaitTime = options.MaxAwaitTime;
+            operation.ReadConcern = readConcern;
+            operation.ResumeAfter = options.ResumeAfter;
+            operation.StartAfter = options.StartAfter;
+            operation.StartAtOperationTime = options.StartAtOperationTime;
+        }
+
+        public static RawChangeStreamOperation CreateRawChangeStreamOperation<TDocument>(
+            IMongoCollection<TDocument> collection,
+            PipelineDefinition<ChangeStreamDocument<TDocument>, RawBsonArray> pipeline,
+            IBsonSerializer<TDocument> documentSerializer,
+            ChangeStreamOptions options,
+            ReadConcern readConcern,
+            MessageEncoderSettings messageEncoderSettings,
+            bool retryRequested)
+        {
+            var renderedPipeline = RenderPipeline(pipeline, documentSerializer);
+
+            var operation = new RawChangeStreamOperation(
+                collection.CollectionNamespace,
+                renderedPipeline.Documents,
+                renderedPipeline.OutputSerializer,
+                messageEncoderSettings)
+            {
+                RetryRequested = retryRequested
+            };
+            SetOperationOptions(operation, options, readConcern);
+            return operation;
+        }
+
+        public static RawChangeStreamOperation CreateRawChangeStreamOperation(
+            IMongoDatabase database,
+            PipelineDefinition<ChangeStreamDocument<BsonDocument>, RawBsonArray> pipeline,
+            ChangeStreamOptions options,
+            ReadConcern readConcern,
+            MessageEncoderSettings messageEncoderSettings,
+            bool retryRequested)
+        {
+            var renderedPipeline = RenderPipeline(pipeline, BsonDocumentSerializer.Instance);
+
+            var operation = new RawChangeStreamOperation(
+                database.DatabaseNamespace,
+                renderedPipeline.Documents,
+                renderedPipeline.OutputSerializer,
+                messageEncoderSettings)
+            {
+                RetryRequested = retryRequested
+            };
+            SetOperationOptions(operation, options, readConcern);
+
+            return operation;
+        }
+
+        public static RawChangeStreamOperation CreateRawChangeStreamOperation(
+            PipelineDefinition<ChangeStreamDocument<BsonDocument>, RawBsonArray> pipeline,
+            ChangeStreamOptions options,
+            ReadConcern readConcern,
+            MessageEncoderSettings messageEncoderSettings,
+            bool retryRequested)
+        {
+            var renderedPipeline = RenderPipeline(pipeline, BsonDocumentSerializer.Instance);
+
+            var operation = new RawChangeStreamOperation(
+                renderedPipeline.Documents,
+                renderedPipeline.OutputSerializer,
+                messageEncoderSettings)
+            {
+                RetryRequested = retryRequested
+            };
+            SetOperationOptions(operation, options, readConcern);
+
+            return operation;
+        }
+
     }
 }

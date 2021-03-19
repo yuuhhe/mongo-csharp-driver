@@ -18,6 +18,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
+using MongoDB.Bson;
 using MongoDB.Driver.Core.Misc;
 using MongoDB.Driver.Core.Operations;
 using MongoDB.Driver.Linq;
@@ -2331,5 +2332,28 @@ namespace MongoDB.Driver
             var provider = new MongoQueryProviderImpl<TDocument>(collection, session, aggregateOptions);
             return new MongoQueryableImpl<TDocument, TDocument>(provider);
         }
+
+        /// <inheritdoc />
+        public static IChangeStreamCursor<RawBsonArray> FastWatch<TDocument>(
+            this IMongoCollection<TDocument> collection,
+            PipelineDefinition<ChangeStreamDocument<TDocument>, RawBsonArray> pipeline = null,
+            ChangeStreamOptions options = null,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            Ensure.IsNotNull(collection, nameof(collection));
+
+            if (pipeline == null)
+                pipeline = new BsonDocument[] { };
+
+            if (collection is MongoCollectionImpl<TDocument> mongoCollection)
+            {
+                return mongoCollection.FastWatch(pipeline, options, cancellationToken);
+            }
+            else
+            {
+                throw new MongoException("Parameter collection must be MongoCollectionImpl type");
+            }
+        }
+
     }
 }
