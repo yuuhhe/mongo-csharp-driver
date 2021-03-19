@@ -2334,9 +2334,9 @@ namespace MongoDB.Driver
         }
 
         /// <inheritdoc />
-        public static IChangeStreamCursor<RawBsonArray> FastWatch<TDocument, TResult>(
+        public static IChangeStreamCursor<RawBsonArray> FastWatch<TDocument>(
             this IMongoCollection<TDocument> collection,
-            PipelineDefinition<ChangeStreamDocument<TDocument>, TResult> pipeline,
+            PipelineDefinition<ChangeStreamDocument<TDocument>, RawBsonArray> pipeline,
             ChangeStreamOptions options = null,
             CancellationToken cancellationToken = default(CancellationToken))
         {

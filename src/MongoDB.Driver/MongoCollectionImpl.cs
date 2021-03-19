@@ -606,14 +606,6 @@ namespace MongoDB.Driver
             return UsingImplicitSession(session => Watch(session, pipeline, options, cancellationToken), cancellationToken);
         }
 
-        public IChangeStreamCursor<RawBsonArray> FastWatch<TResult>(
-            PipelineDefinition<ChangeStreamDocument<TDocument>, TResult> pipeline,
-            ChangeStreamOptions options = null,
-            CancellationToken cancellationToken = default(CancellationToken))
-        {
-            return UsingImplicitSession(session => FastWatch(session, pipeline, options, cancellationToken), cancellationToken);
-        }
-
         public override IChangeStreamCursor<TResult> Watch<TResult>(
             IClientSessionHandle session,
             PipelineDefinition<ChangeStreamDocument<TDocument>, TResult> pipeline,
@@ -626,9 +618,17 @@ namespace MongoDB.Driver
             return ExecuteReadOperation(session, operation, cancellationToken);
         }
 
-        public IChangeStreamCursor<RawBsonArray> FastWatch<TResult>(
+        public IChangeStreamCursor<RawBsonArray> FastWatch(
+            PipelineDefinition<ChangeStreamDocument<TDocument>, RawBsonArray> pipeline,
+            ChangeStreamOptions options = null,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return UsingImplicitSession(session => FastWatch(session, pipeline, options, cancellationToken), cancellationToken);
+        }
+
+        public IChangeStreamCursor<RawBsonArray> FastWatch(
             IClientSessionHandle session,
-            PipelineDefinition<ChangeStreamDocument<TDocument>, TResult> pipeline,
+            PipelineDefinition<ChangeStreamDocument<TDocument>, RawBsonArray> pipeline,
             ChangeStreamOptions options = null,
             CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -922,8 +922,8 @@ namespace MongoDB.Driver
                 _database.Client.Settings.RetryReads);
         }
 
-        private RawChangeStreamOperation CreateRawChangeStreamOperation<TResult>(
-            PipelineDefinition<ChangeStreamDocument<TDocument>, TResult> pipeline,
+        private RawChangeStreamOperation CreateRawChangeStreamOperation(
+            PipelineDefinition<ChangeStreamDocument<TDocument>, RawBsonArray> pipeline,
             ChangeStreamOptions options)
         {
             return ChangeStreamHelper.CreateRawChangeStreamOperation(
