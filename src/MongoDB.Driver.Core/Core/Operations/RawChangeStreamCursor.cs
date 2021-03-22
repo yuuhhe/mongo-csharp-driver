@@ -185,11 +185,12 @@ namespace MongoDB.Driver.Core.Operations
 
                 //var document = DeserializeDocument(rawDocument);
                 //documents.Add(document);
-                if (rawDocument.Count > 0)
+                var count = rawDocument.Count;
+                if (count > 0)
                 {
                     yield return rawDocument;
 
-                    lastRawDocument = (RawBsonDocument)rawDocument[rawDocument.Count - 1];
+                    lastRawDocument = (RawBsonDocument)rawDocument[count - 1];
                 }
                 else
                 {
