@@ -20,6 +20,7 @@ using MongoDB.Driver.Core.Bindings;
 using MongoDB.Driver.Core.Misc;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -157,45 +158,42 @@ namespace MongoDB.Driver.Core.Operations
             return hasMore;
         }
 
+        /*
         // private methods
-        //[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times")]
-        //private RawBsonArray DeserializeDocument(RawBsonDocument rawDocument)
-        //{
-        //    using (var stream = new ByteBufferStream(rawDocument.Slice, ownsBuffer: false))
-        //    using (var reader = new BsonBinaryReader(stream))
-        //    {
-        //        var context = BsonDeserializationContext.CreateRoot(reader);
-        //        return _documentSerializer.Deserialize(context);
-        //    }
-        //}
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times")]
+        private RawBsonArray DeserializeDocument(RawBsonDocument rawDocument)
+        {
+            using (var stream = new ByteBufferStream(rawDocument.Slice, ownsBuffer: false))
+            using (var reader = new BsonBinaryReader(stream))
+            {
+                var context = BsonDeserializationContext.CreateRoot(reader);
+                return _documentSerializer.Deserialize(context);
+            }
+        }
+        */
 
         private IEnumerable<RawBsonArray> DeserializeDocuments(IEnumerable<RawBsonArray> rawDocuments)
         {
-            //var documents = new List<RawBsonDocument>();
+            /*
+            var documents = new List<RawBsonDocument>();
             RawBsonDocument lastRawDocument = null;
+            */
 
             _postBatchResumeToken = ((ICursorBatchInfo)_cursor).PostBatchResumeToken;
+            return rawDocuments;
 
+            /*
             foreach (var rawDocument in rawDocuments)
             {
-                //if (!rawDocument.Contains("_id"))
-                //{
-                //    throw new MongoClientException("Cannot provide resume functionality when the resume token is missing.");
-                //}
-
-                //var document = DeserializeDocument(rawDocument);
-                //documents.Add(document);
-                var count = rawDocument.Count;
-                if (count > 0)
+                if (!rawDocument.Contains("_id"))
                 {
-                    yield return rawDocument;
+                    throw new MongoClientException("Cannot provide resume functionality when the resume token is missing.");
+                }
 
-                    lastRawDocument = (RawBsonDocument)rawDocument[count - 1];
-                }
-                else
-                {
-                    rawDocument.Dispose();
-                }
+                var document = DeserializeDocument(rawDocument);
+                documents.Add(document);
+
+                lastRawDocument = rawDocument;
             }
 
             if (lastRawDocument != null)
@@ -203,7 +201,8 @@ namespace MongoDB.Driver.Core.Operations
                 _documentResumeToken = lastRawDocument["_id"].DeepClone().AsBsonDocument;
             }
 
-            //return documents;
+            return documents;
+            */
         }
 
         private ResumeValues GetResumeValues()
@@ -211,6 +210,13 @@ namespace MongoDB.Driver.Core.Operations
             if (_postBatchResumeToken != null)
             {
                 return new ResumeValues { ResumeAfter = _postBatchResumeToken };
+            }
+
+            var docs = _current?.LastOrDefault();
+            var doc = docs?.LastOrDefault();
+            if (doc != null)
+            {
+                _documentResumeToken = doc["_id"].DeepClone().AsBsonDocument;
             }
 
             if (_documentResumeToken != null)
@@ -240,17 +246,18 @@ namespace MongoDB.Driver.Core.Operations
         {
             if (hasMore)
             {
-                //_current = _cursor.Current;
                 try
                 {
                     _current = DeserializeDocuments(_cursor.Current);
                 }
                 finally
                 {
-                    //foreach (var rawDocument in _cursor.Current)
-                    //{
-                    //    rawDocument.Dispose();
-                    //}
+                    /*
+                    foreach (var rawDocument in _cursor.Current)
+                    {
+                        rawDocument.Dispose();
+                    }
+                    */
                 }
             }
             else
